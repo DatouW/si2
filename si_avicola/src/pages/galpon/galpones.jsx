@@ -10,8 +10,8 @@ import {
   InputNumber,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { reqUpdateShed, reqAddShed, reqShedList } from "../api";
-import { PAGES_SIZE } from "../utils/constant";
+import { reqUpdateShed, reqAddShed, reqShedList } from "../../api";
+import { PAGES_SIZE } from "../../utils/constant";
 
 export default function Galpon() {
   const [loading, setLoading] = useState(false);

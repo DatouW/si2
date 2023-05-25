@@ -2,24 +2,28 @@ const express = require("express");
 const cors = require("cors");
 const sequelize = require("./database/index");
 const app = express();
-const { config } = require("./config");
-const { expressjwt: expressJWT } = require("express-jwt");
+// const { config } = require("./config");
+// const { expressjwt: expressJWT } = require("express-jwt");
 
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use(
-  expressJWT({ secret: config.jwtSecretKey, algorithms: ["HS256"] }).unless({
-    path: [/^\/api\//],
-  })
-);
+// app.use(
+//   expressJWT({ secret: config.jwtSecretKey, algorithms: ["HS256"] }).unless({
+//     path: [/^\/api\//],
+//   })
+// );
 app.use(cors());
 
 app.use("/api", require("./routes/login"));
 app.use("/prod/aves", require("./routes/prodAve"));
 app.use("/galpon", require("./routes/galpon.js"));
+app.use("/user", require("./routes/usuario"));
+app.use("/role", require("./routes/rol"));
+app.use("/poultry", require("./routes/ave"));
+app.use("/weather", require("./routes/ambiente"));
 
 //Error-handling middleware
 app.use((err, req, res, next) => {

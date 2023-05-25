@@ -1,11 +1,18 @@
 const sequelize = require("../database");
+const Ave = require("../models/ave");
 const Lote = require("../models/lote");
 const { Op } = require("sequelize");
-const { QueryTypes } = require("sequelize");
 
 exports.getBatchList = async (req, res) => {
   try {
-    const batches = await Lote.findAll({ order: ["id_lote"] });
+    const batches = await Lote.findAll({
+      order: ["id_lote"],
+      include: [
+        {
+          model: Ave,
+        },
+      ],
+    });
     // console.log(batches);
     res.send({ status: 0, data: batches });
   } catch (error) {
@@ -15,7 +22,7 @@ exports.getBatchList = async (req, res) => {
 };
 
 exports.addBatch = async (req, res) => {
-  const { nombre, fecha, proposito, cantidad, estado, procedencia } = req.body;
+  const { nombre, fecha_ingreso, descripcion, cantidad, id_ave } = req.body;
   try {
     const batch = await Lote.findOne({
       where: {
@@ -27,11 +34,10 @@ exports.addBatch = async (req, res) => {
     } else {
       const b = await Lote.create({
         nombre,
-        fecha,
-        proposito,
+        fecha_ingreso,
+        descripcion,
         cantidad,
-        estado,
-        procedencia,
+        id_ave,
       });
       res.send({ status: 0, msg: "producto anadido exitosamente", data: b });
     }
@@ -40,9 +46,9 @@ exports.addBatch = async (req, res) => {
   }
 };
 exports.editBatch = async (req, res) => {
-  const { id_lote, nombre, fecha, proposito, cantidad, estado, procedencia } =
+  const { id_lote, nombre, fecha_ingreso, descripcion, cantidad, id_ave } =
     req.body;
-  console.log(req.body);
+  // console.log(req.body);
   try {
     // verifica si existe el lote
     const batch = await Lote.findOne({
@@ -55,11 +61,10 @@ exports.editBatch = async (req, res) => {
       await Lote.update(
         {
           nombre,
-          fecha,
-          proposito,
+          fecha_ingreso,
+          descripcion,
           cantidad,
-          estado,
-          procedencia,
+          id_ave,
         },
         {
           where: {
@@ -110,6 +115,12 @@ exports.searchBatches = async (req, res) => {
       where: {
         nombre: { [Op.like]: regex },
       },
+      order: ["id_lote"],
+      include: [
+        {
+          model: Ave,
+        },
+      ],
     });
     res.send({ status: 0, data: batches });
   } catch (error) {
@@ -143,6 +154,31 @@ exports.updateShed = async (req, res) => {
     res.send({
       status: 1,
       msg: "El galpón no tiene suficiente capacidad para asignar el lote",
+    });
+  }
+};
+
+exports.updateSalida = async (req, res) => {
+  const { id_lote, fecha_salida, destino } = req.body;
+  try {
+    const batch = await Lote.findByPk(id_lote);
+    // console.log(batch);
+    if (batch) {
+      batch.fecha_salida = fecha_salida;
+      batch.destino = destino;
+      await batch.save();
+      res.send({ status: 0, data: batch });
+    } else {
+      res.send({
+        status: 1,
+        msg: "no se encontro el lote",
+      });
+    }
+  } catch (error) {
+    console.log("update salida batch: ", error);
+    res.send({
+      status: 1,
+      msg: "Error al modificar",
     });
   }
 };

@@ -7,6 +7,10 @@ import {
   DatabaseOutlined,
   ContainerOutlined,
   StarOutlined,
+  BankOutlined,
+  CloudOutlined,
+  TeamOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 
 const menuList = [
@@ -16,8 +20,30 @@ const menuList = [
     icon: <HomeOutlined />,
   },
   {
+    title: "Gestión de Usuarios",
+    key: "1",
+    icon: <UserOutlined />,
+    children: [
+      {
+        title: "Usuario",
+        key: "/usuario",
+        icon: <TeamOutlined />,
+      },
+      {
+        title: "Rol",
+        key: "/rol",
+        icon: <EditOutlined />,
+      },
+    ],
+  },
+  {
+    title: "Gestión de Ave",
+    key: "/ave",
+    icon: <TwitterOutlined />,
+  },
+  {
     title: "Gestión de Producción",
-    key: null,
+    key: "2",
     icon: <TwitterOutlined />,
     children: [
       {
@@ -34,8 +60,20 @@ const menuList = [
   },
   {
     title: "Gestión de Galpones",
-    key: "/galpones",
+    key: "0",
     icon: <DatabaseOutlined />,
+    children: [
+      {
+        title: "Galpones",
+        key: "/galpones",
+        icon: <BankOutlined />,
+      },
+      {
+        title: "Ambiente",
+        key: "/ambiente",
+        icon: <CloudOutlined />,
+      },
+    ],
   },
   {
     title: "Gestión de Salud",
@@ -46,11 +84,6 @@ const menuList = [
     title: "Gestión de Cuarentena",
     key: "/cuarentena",
     icon: <LockOutlined />,
-  },
-  {
-    title: "Gestión de Usuarios",
-    key: "/usuario",
-    icon: <UserOutlined />,
   },
   {
     title: "Reporte",

@@ -13,31 +13,31 @@ const Lote = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    fecha: {
+    descripcion: DataTypes.STRING,
+    fecha_ingreso: {
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
-    proposito: {
-      type: DataTypes.STRING,
+    fecha_salida: {
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
     cantidad: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    estado: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    procedencia: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    destino: DataTypes.CHAR,
+    archivado: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
     id_galpon: {
       type: DataTypes.INTEGER,
     },
+    id_ave: {
+      type: DataTypes.INTEGER,
+    },
   },
-
   {
     tableName: "lote",
     timestamps: false,

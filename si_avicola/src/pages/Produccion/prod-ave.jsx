@@ -22,6 +22,7 @@ import {
   reqEditBatch,
   reqSearchBatch,
   reqShedList,
+  reqSpeciesList,
   reqUpdateShedBatch,
 } from "../../api";
 const { Search } = Input;
@@ -29,20 +30,24 @@ const { Option } = Select;
 
 export default function ProdAve() {
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
+
   const [isUpdate, setIsUpdate] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [id, setId] = useState();
   const [galpones, setGalpones] = useState([]);
+  const [aves, setAves] = useState([]);
+
+  const [form] = Form.useForm();
 
   const getData = async (response) => {
-    let g;
     if (response) {
     } else {
       setLoading(true);
       response = await reqBatchList();
-      g = (await reqShedList()).data;
+      const g = (await reqShedList()).data;
       setGalpones(g.data);
+      const esp = (await reqSpeciesList()).data;
+      setAves(esp.data);
     }
 
     const result = response.data;
@@ -77,51 +82,47 @@ export default function ProdAve() {
     },
     {
       title: "Fecha Ingreso",
-      dataIndex: "fecha",
+      dataIndex: "fecha_ingreso",
     },
     {
-      title: "Propósito",
-      dataIndex: "proposito",
+      title: "Especie",
+      dataIndex: "ave",
+      render: (ave) => ave.especie,
     },
     {
       title: "Cantidad",
       dataIndex: "cantidad",
     },
     {
-      title: "Estado",
-      dataIndex: "estado",
-      render: (estado) => {
-        switch (estado) {
-          case "rl":
-            return "Recién llegado";
-          case "cr":
-            return "En crecimiento";
+      title: "Fecha salida",
+      dataIndex: "fecha_salida",
+      render: (fs) => (fs === null ? "-" : fs),
+    },
+    {
+      title: "Destino",
+      dataIndex: "destino",
+      render: (destino) => {
+        switch (destino) {
+          case "s":
+            return "Sacrificio y procesamiento";
+          case "v":
+            return "Venta como aves vivas";
           case "pr":
             return "En producción";
-          case "cu":
-            return "En cuarentena";
-          case "ve":
-            return "Vendido";
           default:
             return "-";
         }
       },
     },
     {
-      title: "Procedencia",
-      dataIndex: "procedencia",
-      render: (procedencia) => {
-        switch (procedencia) {
-          case "c ":
-            return "Comprada";
-          case "g ":
-            return "Granja propia";
-          case "d ":
-            return "Desconocida";
-          default:
-            return "-";
-        }
-      },
+      title: "Archivado",
+      dataIndex: "archivado",
+      render: (arc) => (arc === true ? "Si" : "No"),
+    },
+    {
+      title: "Descripcion",
+      dataIndex: "descripcion",
+      render: (des) => (des === null ? " - " : des),
     },
     {
       title: "Galpon",
@@ -169,11 +170,10 @@ export default function ProdAve() {
     if (isUpdate) {
       form.setFieldsValue({
         nombre: lote.nombre,
-        fecha: moment(lote.fecha, "YYYY/MM/DD"),
-        proposito: lote.proposito,
+        fecha_ingreso: moment(lote.fecha_ingreso, "YYYY/MM/DD"),
         cantidad: lote.cantidad,
-        estado: lote.estado,
-        procedencia: lote.procedencia,
+        descripcion: lote.descripcion,
+        id_ave: lote.id_ave,
       });
     }
     setIsModalOpen(true);
@@ -197,7 +197,7 @@ export default function ProdAve() {
       result = (await reqAddBatch(value)).data;
     }
     if (result.status === 0) {
-      value.fecha = moment(value.fecha).format("YYYY-MM-DD");
+      value.fecha_ingreso = moment(value.fecha).format("YYYY-MM-DD");
       if (result.data) {
         setDataSource([...dataSource, result.data]);
       } else {
@@ -289,7 +289,6 @@ export default function ProdAve() {
             rules={[
               {
                 required: true,
-                message: "Este campo no puede ser vacío!",
               },
             ]}
           >
@@ -298,31 +297,14 @@ export default function ProdAve() {
 
           <Form.Item
             label="Fecha Ingreso"
-            name="fecha"
+            name="fecha_ingreso"
             rules={[
               {
                 required: true,
-                message: "Este campo no puede ser vacío!",
               },
             ]}
           >
             <DatePicker />
-          </Form.Item>
-
-          <Form.Item
-            name="proposito"
-            label="Propósito"
-            rules={[
-              {
-                required: true,
-              },
-            ]}
-          >
-            <Select placeholder="Seleccione" onChange={() => {}} allowClear>
-              <Option value="huevo">huevo</Option>
-              <Option value="carne">carne</Option>
-              <Option value="ambos">ambos</Option>
-            </Select>
           </Form.Item>
 
           <Form.Item
@@ -331,41 +313,19 @@ export default function ProdAve() {
             rules={[
               {
                 required: true,
-                message: "Este campo no puede ser vacío!",
               },
             ]}
           >
             <InputNumber min={1} />
           </Form.Item>
 
-          <Form.Item
-            label="Estado"
-            name="estado"
-            rules={[
-              {
-                required: true,
-                message: "Este campo no puede ser vacío!",
-              },
-            ]}
-          >
-            <Select
-              placeholder="Seleccione"
-              onChange={(value) => {
-                // console.log(value);
-              }}
-              allowClear
-            >
-              <Option value="rl">Recién llegado</Option>
-              <Option value="cr">En crecimiento</Option>
-              <Option value="pr">En producción</Option>
-              <Option value="cu">En cuarentena</Option>
-              <Option value="ve">Vendido</Option>
-            </Select>
+          <Form.Item label="Descripcion" name="descripcion">
+            <Input.TextArea />
           </Form.Item>
 
           <Form.Item
-            label="Procedencia"
-            name="procedencia"
+            label="Especie"
+            name="id_ave"
             rules={[
               {
                 required: true,
@@ -374,9 +334,11 @@ export default function ProdAve() {
             ]}
           >
             <Select placeholder="Seleccione" allowClear>
-              <Option value="c">comprada</Option>
-              <Option value="g">granja propia</Option>
-              <Option value="d">desconocida</Option>
+              {aves.map((ave) => (
+                <Option value={ave.id} key={ave.id}>
+                  {ave.especie}
+                </Option>
+              ))}
             </Select>
           </Form.Item>
         </Form>

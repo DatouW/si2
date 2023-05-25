@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Usuario = require("../models/usuario");
 const { config } = require("../config");
-// const Rol = require("../models/rol");
+const Rol = require("../models/rol");
 
 exports.postLogin = async (req, res) => {
   const { nombre_usuario, contraseña } = req.body;
@@ -15,6 +15,12 @@ exports.postLogin = async (req, res) => {
       if (!result) return res.send({ status: 1, msg: "Contraseña incorrecta" });
 
       user.contraseña = null;
+      let rol = await Rol.findOne({
+        attributes: ["permisos"],
+        where: { id_rol: user.id_rol },
+      });
+      user.dataValues.permisos = rol.permisos;
+
       const tokenStr = jwt.sign(user.toJSON(), config.jwtSecretKey, {
         expiresIn: config.expiresIn,
       });

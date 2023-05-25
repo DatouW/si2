@@ -2,6 +2,8 @@ const Lote = require("./lote");
 const Rol = require("./rol");
 const Usuario = require("./usuario");
 const Galpon = require("./galpon");
+const Ave = require("./ave");
+const { Fecha, Ambiente } = require("./ambiente");
 
 // rol --- usuario
 Rol.hasMany(Usuario, {
@@ -20,9 +22,18 @@ Lote.belongsTo(Galpon, {
   foreignKey: "id_galpon",
 });
 
+// lote--- ave
+Ave.hasMany(Lote, {
+  foreignKey: "id_ave",
+});
+Lote.belongsTo(Ave, {
+  foreignKey: "id_ave",
+});
+
 module.exports = {
   Rol,
   Usuario,
   Galpon,
   Lote,
+  // Ave,
 };
