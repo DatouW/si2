@@ -17,6 +17,7 @@ import Password from "../pages/password";
 import Vacuna from "../pages/salud/vacuna";
 import Bitacora from "../pages/usuario/bitacora";
 import PdfReport from "../pages/pdf";
+import Backup from "../pages/backup";
 
 const router = [
   {
@@ -90,6 +91,10 @@ const router = [
       {
         path: "reporte",
         element: <Reporte />,
+      },
+      {
+        path: "backup",
+        element: <Backup />,
       },
     ],
   },

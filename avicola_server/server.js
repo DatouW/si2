@@ -2,9 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const sequelize = require("./database/index");
 const app = express();
+const cron = require("node-cron");
 // const { config } = require("./config");
 // const { expressjwt: expressJWT } = require("express-jwt");
-const { backup, restore } = require("./backup");
+const { backup } = require("./backup");
+require("dotenv").config();
 
 const PORT = process.env.PORT || 5000;
 
@@ -30,6 +32,62 @@ app.use("/weather", require("./routes/ambiente"));
 app.use("/health", require("./routes/salud"));
 app.use("/quar", require("./routes/cuarentena"));
 app.use("/report", require("./routes/reporte"));
+app.use("/back", require("./routes/back_up"));
+
+// Ruta para recibir la petición de cambio de horario
+app.post("/schedule", (req, res) => {
+  const { min, hour, auto } = req.body;
+
+  // Actualiza el horario de respaldo
+  scheduleBackup(min, hour, auto);
+
+  res.send({ status: 0, msg: "Horario de backup actualizado con éxito" });
+});
+
+app.get("/schedule", (req, res) => {
+  res.send({ data: obj });
+});
+
+let backupTask = null;
+
+let obj = null;
+
+// Función para programar la tarea de respaldo
+function scheduleBackup(newMinute, newHour, auto) {
+  console.log(newHour, newMinute, auto);
+  // Aquí puedes implementar la lógica para obtener el horario actual del usuario
+  let userHour;
+  let userMinute;
+  let flag;
+  if (auto === undefined || auto) {
+    userHour = process.env.BACKUP_HOUR;
+    userMinute = process.env.BACKUP_MIN;
+    flag = true;
+  } else {
+    userHour = newHour;
+    userMinute = newMinute;
+    flag = false;
+  }
+  obj = {
+    hour: userHour,
+    min: userMinute,
+    auto: flag,
+  };
+  const schedule = `${userMinute} ${userHour} * * *`;
+
+  // Cancela la tarea de respaldo anterior
+  if (backupTask) {
+    backupTask.destroy();
+  }
+
+  // Programa la nueva tarea de respaldo
+  backupTask = cron.schedule(schedule, backup);
+
+  console.log(`Programación de respaldo actualizada: ${schedule}`);
+}
+
+// Programa la tarea de respaldo inicial
+scheduleBackup();
 
 //Error-handling middleware
 app.use((err, req, res, next) => {
@@ -38,9 +96,6 @@ app.use((err, req, res, next) => {
   else res.send({ status: 1, msg: "unknown error" });
   console.log(err);
 });
-
-// backup();
-restore();
 
 (async () => {
   try {

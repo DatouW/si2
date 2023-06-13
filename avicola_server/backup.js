@@ -1,15 +1,12 @@
 const moment = require("moment");
 const fs = require("fs");
 const path = require("path");
+
 const { spawn } = require("child_process");
 require("dotenv").config();
 
 const fileName = `${moment().format("YYYY_MM_DD")}.sql`;
 const BACKUP_PATH = path.join(__dirname, "public", "backup", fileName);
-// console.log(BACKUP_PATH);
-
-// console.log("---------------------");
-// console.log("Running Database Backup Cron Job");
 
 // const dump = spawn(
 //   "pg_dump",
@@ -33,7 +30,6 @@ function backup() {
   const dump = spawn(
     "pg_dump",
     [
-      "-s",
       "--format=c",
       "-U",
       `${process.env.DB_USER}`,
@@ -68,21 +64,15 @@ function backup() {
   // });
 }
 
-function restore() {
-  console.log("restore...");
+function restore(backup_file) {
+  let backup_path = path.join(__dirname, "public", "backup", backup_file);
+  const fileContent = fs.readFileSync(backup_path);
+  if (fileContent.length === 0) return 1;
+  // console.log(backup_path);
+
   const restoreCommand = spawn(
     "pg_restore",
-    [
-      // "-c",
-      "-C",
-      // "--format=c",
-      "-U",
-      process.env.DB_USER,
-      "-d",
-      process.env.DB_NAME,
-      // "-f",
-      BACKUP_PATH,
-    ],
+    ["-U", process.env.DB_USER, "-d", process.env.DB_NAME, "-c", backup_path],
     {
       env: {
         ...process.env,
@@ -90,11 +80,7 @@ function restore() {
       },
     }
   );
-  console.log(BACKUP_PATH);
-  const fileContent = fs.readFileSync(BACKUP_PATH);
-  if (fileContent.length === 0) return;
 
-  // console.log(restoreCommand.stdin);
   // Maneja eventos de salida, error y finalización del proceso hijo
   restoreCommand.stdout.on("data", (data) => {
     console.log(`Salida: ${data}`);
@@ -104,16 +90,19 @@ function restore() {
     console.error(`Error: ${data}`);
   });
 
+  let flag = 0;
   restoreCommand.on("close", (code) => {
     if (code === 0) {
       console.log("Restauración de la base de datos completada con éxito");
+      flag = 0;
     } else {
       console.error(
         `Error al restaurar la base de datos. Código de salida: ${code}`
       );
+      flag = 1;
     }
   });
-  console.log("fin restore...");
+  return flag;
 }
 
 module.exports = {

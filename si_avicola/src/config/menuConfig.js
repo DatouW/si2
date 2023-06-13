@@ -12,6 +12,7 @@ import {
   TeamOutlined,
   EditOutlined,
   PlusSquareOutlined,
+  CloudSyncOutlined,
 } from "@ant-design/icons";
 
 const menuList = [
@@ -112,6 +113,11 @@ const menuList = [
     title: "Reporte",
     key: "/reporte",
     icon: <ContainerOutlined />,
+  },
+  {
+    title: "Backup/Restore",
+    key: "/backup",
+    icon: <CloudSyncOutlined />,
   },
 ];
 

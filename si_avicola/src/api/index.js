@@ -70,3 +70,11 @@ export const reqEndDate = (value) => ajax(CUARENTENA + "/end", value, "PUT");
 
 const REPORT = "/report";
 export const reqDeath = (start, end) => ajax(REPORT, { start, end });
+
+const SCHEDULE = "/schedule";
+export const reqScheduleDB = (value) => ajax(SCHEDULE, value, "POST");
+export const reqScheduleData = (value) => ajax(SCHEDULE);
+const BACKUP = "/back";
+export const reqBackupList = () => ajax(BACKUP + "/list");
+export const reqRestorDB = (filename, nombre_usuario) =>
+  ajax(BACKUP + "/restore", { filename, nombre_usuario }, "POST");
