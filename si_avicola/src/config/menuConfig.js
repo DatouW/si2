@@ -11,6 +11,7 @@ import {
   CloudOutlined,
   TeamOutlined,
   EditOutlined,
+  PlusSquareOutlined,
 } from "@ant-design/icons";
 
 const menuList = [
@@ -32,6 +33,11 @@ const menuList = [
       {
         title: "Rol",
         key: "/rol",
+        icon: <EditOutlined />,
+      },
+      {
+        title: "Bitacora",
+        key: "/log",
         icon: <EditOutlined />,
       },
     ],
@@ -73,12 +79,29 @@ const menuList = [
         key: "/ambiente",
         icon: <CloudOutlined />,
       },
+      {
+        title: "Mortandad",
+        key: "/mortandad",
+        icon: <CloudOutlined />,
+      },
     ],
   },
   {
     title: "Gestión de Salud",
-    key: "/salud",
+    key: "3",
     icon: <AlertOutlined />,
+    children: [
+      {
+        title: "Registro Vacunacion",
+        key: "/salud",
+        icon: <PlusSquareOutlined />,
+      },
+      {
+        title: "Vacuna",
+        key: "/vacuna",
+        icon: <AlertOutlined />,
+      },
+    ],
   },
   {
     title: "Gestión de Cuarentena",

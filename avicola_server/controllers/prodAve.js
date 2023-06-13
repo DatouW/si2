@@ -2,6 +2,8 @@ const sequelize = require("../database");
 const Ave = require("../models/ave");
 const Lote = require("../models/lote");
 const { Op } = require("sequelize");
+const { registerLog } = require("./bitacora");
+const { Galpon } = require("../models");
 
 exports.getBatchList = async (req, res) => {
   try {
@@ -20,9 +22,29 @@ exports.getBatchList = async (req, res) => {
     res.send({ status: 1, msg: error });
   }
 };
-
+exports.getBatchId = async (req, res) => {
+  try {
+    const batches = await Lote.findAll({
+      order: ["id_lote"],
+      attributes: ["id_lote", "nombre"],
+    });
+    // console.log(batches);
+    res.send({ status: 0, data: batches });
+  } catch (error) {
+    console.log(error);
+    res.send({ status: 1, msg: error });
+  }
+};
 exports.addBatch = async (req, res) => {
-  const { nombre, fecha_ingreso, descripcion, cantidad, id_ave } = req.body;
+  const {
+    nombre,
+    fecha_ingreso,
+    origen,
+    descripcion,
+    cantidad,
+    id_ave,
+    nombre_usuario,
+  } = req.body;
   try {
     const batch = await Lote.findOne({
       where: {
@@ -37,17 +59,28 @@ exports.addBatch = async (req, res) => {
         fecha_ingreso,
         descripcion,
         cantidad,
+        origen,
         id_ave,
       });
+      await registerLog(nombre_usuario, "Ingresar nuevo lote");
       res.send({ status: 0, msg: "producto anadido exitosamente", data: b });
     }
   } catch (error) {
     res.send({ status: 1, msg: error });
   }
 };
+
 exports.editBatch = async (req, res) => {
-  const { id_lote, nombre, fecha_ingreso, descripcion, cantidad, id_ave } =
-    req.body;
+  const {
+    id_lote,
+    nombre,
+    fecha_ingreso,
+    origen,
+    descripcion,
+    cantidad,
+    id_ave,
+    nombre_usuario,
+  } = req.body;
   // console.log(req.body);
   try {
     // verifica si existe el lote
@@ -64,6 +97,7 @@ exports.editBatch = async (req, res) => {
           fecha_ingreso,
           descripcion,
           cantidad,
+          origen,
           id_ave,
         },
         {
@@ -72,6 +106,8 @@ exports.editBatch = async (req, res) => {
           },
         }
       );
+      await registerLog(nombre_usuario, `Modificar datos de ${nombre}`);
+
       res.send({ status: 0, msg: "lote modificado con exito" });
     } else {
       res.send({ status: 1, msg: "no existe el lote" });
@@ -83,7 +119,7 @@ exports.editBatch = async (req, res) => {
 };
 
 exports.deleteBatch = async (req, res) => {
-  const { id_lote } = req.query;
+  const { id_lote, nombre_usuario } = req.query;
   // console.log(id_lote);
   try {
     const batch = await Lote.findOne({
@@ -93,6 +129,7 @@ exports.deleteBatch = async (req, res) => {
     });
     if (batch) {
       await batch.destroy();
+      await registerLog(nombre_usuario, `Eliminar ${nombre}`);
       res.send({ status: 0, msg: "eliminado existosamente" });
     } else {
       res.send({
@@ -130,19 +167,28 @@ exports.searchBatches = async (req, res) => {
 };
 
 exports.updateShed = async (req, res) => {
-  const { id_lote, id_galpon } = req.body;
+  const { id_lote, id_galpon, nombre_usuario } = req.body;
   try {
     const batch = await Lote.findByPk(id_lote);
     // console.log(batch);
     if (batch) {
-      await sequelize.query(
-        "CALL asignar_lote(:galpon_id,:lote_id)",
-        {
-          replacements: { galpon_id: id_galpon, lote_id: id_lote },
-        },
-        { type: sequelize.QueryTypes.SELECT }
-      );
-      res.send({ status: 0, msg: `Lote asignado al galpon ${id_galpon}` });
+      const gal = await Galpon.findByPk(id_galpon);
+      if (gal.en_cuar) {
+        res.send({ status: 1, msg: "Galpon en cuarentena" });
+      } else {
+        await sequelize.query(
+          "CALL asignar_lote(:galpon_id,:lote_id)",
+          {
+            replacements: { galpon_id: id_galpon, lote_id: id_lote },
+          },
+          { type: sequelize.QueryTypes.SELECT }
+        );
+        await registerLog(
+          nombre_usuario,
+          `Trasladacion del ${batch.nombre} al galpon ${id_galpon}`
+        );
+        res.send({ status: 0, msg: `Lote asignado al galpon ${id_galpon}` });
+      }
     } else {
       res.send({
         status: 1,
@@ -159,7 +205,7 @@ exports.updateShed = async (req, res) => {
 };
 
 exports.updateSalida = async (req, res) => {
-  const { id_lote, fecha_salida, destino } = req.body;
+  const { id_lote, fecha_salida, destino, nombre_usuario } = req.body;
   try {
     const batch = await Lote.findByPk(id_lote);
     // console.log(batch);
@@ -167,6 +213,10 @@ exports.updateSalida = async (req, res) => {
       batch.fecha_salida = fecha_salida;
       batch.destino = destino;
       await batch.save();
+      await registerLog(
+        nombre_usuario,
+        `Modificar la salida del ${batch.nombre}`
+      );
       res.send({ status: 0, data: batch });
     } else {
       res.send({

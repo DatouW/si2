@@ -1,4 +1,5 @@
 const Rol = require("../models/rol");
+const { registerLog } = require("./bitacora");
 
 //obtener todos los tipos de usuarios menos
 exports.getRoleList = async (req, res) => {
@@ -9,7 +10,7 @@ exports.getRoleList = async (req, res) => {
       res.send({ status: 0, data: roles });
     } else {
       res.send({
-        status: 0,
+        status: 1,
         msg: "No se pudo obtener la lista de tipos de usuario",
       });
     }
@@ -20,12 +21,13 @@ exports.getRoleList = async (req, res) => {
 
 // crear un nuevo tipo de usuario
 exports.postAddRole = async (req, res) => {
-  const { nombre } = req.body;
+  const { nombre, nombre_usuario } = req.body;
   try {
     const rol = await Rol.create({
       nombre,
     });
     if (rol) {
+      await registerLog(nombre_usuario, "Añadir nuevo rol");
       res.send({ status: 0, data: rol });
     } else {
       res.send({
@@ -40,12 +42,13 @@ exports.postAddRole = async (req, res) => {
 
 //modificar permisos de usuario
 exports.updatePerm = async (req, res) => {
-  const { id_rol, permisos } = req.body;
+  const { id_rol, permisos, nombre_usuario } = req.body;
   try {
     const rol = await Rol.findByPk(id_rol);
     if (rol) {
       rol.permisos = permisos;
       await rol.save();
+      await registerLog(nombre_usuario, `Modificar permismos de ${permisos}`);
       res.send({ status: 0, msg: "permisos actualizados exitosamente" });
     } else {
       res.send({ status: 1, msg: "no existe este tipo de usuario" });

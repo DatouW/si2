@@ -2,6 +2,8 @@ const { Op } = require("sequelize");
 const Usuario = require("../models/usuario");
 const Rol = require("../models/rol");
 const bcrypt = require("bcryptjs");
+const { registerLog } = require("./bitacora");
+const Bitacora = require("../models/bitacora");
 
 exports.getUserList = async (req, res) => {
   const { id_rol } = req.query;
@@ -39,14 +41,24 @@ exports.getUserList = async (req, res) => {
 };
 
 exports.putPwd = async (req, res) => {
-  const { id_user, newpwd } = req.body;
+  const { id_user, newpwd, username } = req.body;
 
   try {
     const user = await Usuario.findByPk(id_user);
 
     if (user) {
       user.contraseña = bcrypt.hashSync(newpwd, 10);
+      // user.bloqueado = false;
+      // user.error = 0;
+      // user.hora = null;
+
       await user.save();
+
+      await registerLog(
+        username,
+        `Cambio de contraseña del usuario ${user.nombre_usuario}`
+      );
+
       res.send({
         status: 0,
         msg: "La contraseña ha sido modificada exitosamente.",
@@ -56,6 +68,50 @@ exports.putPwd = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
+    res.send({ status: 1, msg: error });
+  }
+};
+
+exports.putRole = async (req, res) => {
+  const { id_user, id_rol, username } = req.body;
+  try {
+    const user = await Usuario.findByPk(id_user);
+
+    if (user) {
+      user.id_rol = id_rol;
+      await user.save();
+
+      await registerLog(
+        username,
+        `Cambio de rol del usuario ${user.nombre_usuario}`
+      );
+
+      res.send({
+        status: 0,
+        msg: `Rol del usuario ${user.nombre_usuario} ha sido modificado con exito`,
+      });
+    } else {
+      res.send({ status: 1, msg: "Error al cambiar contraseña." });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ status: 1, msg: error });
+  }
+};
+
+exports.getLogList = async (req, res) => {
+  try {
+    const logs = await Bitacora.findAll({ order: [["id_log", "DESC"]] });
+    if (logs) {
+      // console.log(JSON.stringify(logs));
+      res.send({ status: 0, data: logs });
+    } else {
+      res.send({
+        status: 1,
+        msg: "No se pudo encontrar ninguno registro de bitacora",
+      });
+    }
+  } catch (error) {
     res.send({ status: 1, msg: error });
   }
 };

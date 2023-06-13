@@ -20,6 +20,10 @@ const Galpon = sequelize.define(
     capacidad_libre: {
       type: DataTypes.INTEGER,
     },
+    en_cuar: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   },
   {
     tableName: "galpon",

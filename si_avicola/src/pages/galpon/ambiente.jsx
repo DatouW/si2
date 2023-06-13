@@ -8,28 +8,41 @@ import {
   message,
   Form,
   DatePicker,
+  Select,
+  Typography,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import {
-  reqAddAmbiente,
-  reqAddBatchAmbiente,
-  reqAmbienteList,
-} from "../../api";
-import { PAGES_SIZE } from "../../utils/constant";
+import { reqAddAmbiente, reqAmbienteList, reqShedId } from "../../api";
+import { DATEHOURFORMAT, PAGES_SIZE } from "../../utils/constant";
+import moment from "moment";
+import storageUtils from "../../utils/storageUtils";
+
+const NOMBRE_USUARIO = storageUtils.getUser().nombre_usuario;
 
 export default function Ambiente() {
   const [loading, setLoading] = useState(false);
-  const [isUpdate, setIsUpdate] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [id, setId] = useState({});
+  const [galpon, setGalpon] = useState([]);
+  const [id, setId] = useState();
   const [form] = Form.useForm();
 
   const getData = async () => {
     setLoading(true);
+    const gids = (await reqShedId()).data;
+    let gal = [];
 
-    const result = (await reqAmbienteList()).data;
-
+    if (gids.status === 0) {
+      gids.data.forEach((s) =>
+        gal.push({
+          value: s.id_galpon,
+          label: "Galpon " + s.id_galpon,
+        })
+      );
+      setGalpon(gal);
+      setId(gal[0].value);
+    }
+    const result = (await reqAmbienteList(gal[0].value)).data;
     setLoading(false);
     if (result.status === 0) {
       setDataSource(result.data);
@@ -43,70 +56,72 @@ export default function Ambiente() {
     getData();
   }, []);
 
-  const expandedRowRender = (record) => {
-    const data = record.lotes;
-    console.log(record);
-
-    const columns = [
-      {
-        title: "Lote",
-        dataIndex: "nombre",
-      },
-      {
-        title: "Cantidad",
-        dataIndex: "cantidad",
-      },
-    ];
-
-    return (
-      <Table
-        columns={columns}
-        dataSource={data}
-        pagination={false}
-        rowKey={(data) => data.id_lote}
-      />
-    );
-  };
-
   const columns = [
     {
       title: "Fecha",
       dataIndex: "fecha",
+      render: (f) => {
+        return moment(f).format(DATEHOURFORMAT);
+      },
     },
-    {
-      title: "Hora",
-      dataIndex: "hora",
-    },
+
     {
       title: "Humedad",
       dataIndex: "humedad",
+      render: (h) => h + " %",
     },
     {
       title: "Temperatura (°C)",
       dataIndex: "temperatura",
     },
+    // {
+    //   title:"Informe",
+    //   render:(amb) =>{
+    //     const sum =  amb.humedad + amb.temperatura;
+    //     if(sum < 80){
+    //       return "Aire frio/deficiente";
+    //     }
+    //     else if(sum >= 80 && sum <= 100){
+    //       return "Las aves se sienten comodas";
+    //     }
+    //     else if(sum > 100 && sum < 114){
+    //       return "Sensacion sofocante (caliente y humedo)";
+    //     }else{
+    //       return "Consecuencia fatal";
+    //     }
+    //   }
+    // },
     {
-      title: "Acción",
-      render: (ambiente) => {
-        return "";
-        // <Button
-        //   type="primary"
-        //   style={{ marginRight: 10 }}
-        //   onClick={() => {
-        //     setIsUpdate((_) => true);
-        //     setId({ fecha: ambiente.fecha, hora: ambiente.hora });
-        //     showModal(ambiente, true);
-        //   }}
-        // >
-        //   Registrar Lote
-        // </Button>
+      title: "Medidas a tomar",
+      render: (amb) => {
+        let temp = amb.temperatura;
+        let hum = amb.humedad;
+        let str = "";
+        if (temp >= 18 && temp <= 35) {
+          str = "";
+        } else if (temp < 18) {
+          str = "Utilizar sistema de Ventilacion";
+        } else {
+          str = "Utilizar sistema de Calefaccion";
+        }
+        if (str !== "") {
+          str += "\n";
+        }
+        if (hum < 40) {
+          str += "Utilizar sistema de nebulización";
+        } else if (hum >= 40 && hum <= 70) {
+          str += "";
+        } else {
+          str += "Utilizar deshumidificadores ";
+        }
+        if (str === "") {
+          str = "Ninguna";
+        }
+        return str;
       },
     },
   ];
 
-  const showModal = (galpon, isUpdate) => {
-    setIsModalOpen(true);
-  };
   const handleOk = () => {
     form.submit();
   };
@@ -117,26 +132,15 @@ export default function Ambiente() {
 
   const onFinish = async (value) => {
     // console.log(value);
-    let result;
-    if (isUpdate) {
-      value.fecha = id.fecha;
-      value.hora = id.hora;
-      result = (await reqAddBatchAmbiente(value)).data;
-    } else {
-      result = (await reqAddAmbiente(value)).data;
-    }
-    console.log(result);
+    value.nombre_usuario = NOMBRE_USUARIO;
+    let result = (await reqAddAmbiente(value)).data;
+
+    // console.log(result);
     if (result.status === 0) {
-      if (isUpdate) {
-        let index = dataSource.findIndex(
-          (ambiente) => ambiente.fecha === id.fecha && ambiente.hora === id.hora
-        );
-        dataSource[index] = result.data;
-        setDataSource([...dataSource]);
-      } else {
-        console.log([...dataSource, result.data]);
-        setDataSource([...dataSource, result.data]);
+      if (value.id_galpon === id) {
+        setDataSource([result.data, ...dataSource]);
       }
+      // console.log([...dataSource, result.data]);
       message.success(result.msg);
     }
     setIsModalOpen(false);
@@ -147,7 +151,6 @@ export default function Ambiente() {
     <Button
       type="primary"
       onClick={() => {
-        setIsUpdate(false);
         setIsModalOpen(true);
       }}
     >
@@ -156,85 +159,97 @@ export default function Ambiente() {
     </Button>
   );
 
+  const onSelect = async (value) => {
+    setId(value);
+    const result = (await reqAmbienteList(value)).data;
+    if (result.status === 0) {
+      setDataSource(result.data);
+    } else {
+      message.error(result.msg);
+    }
+  };
+  const title = (
+    <Select
+      value={id}
+      style={{
+        width: 200,
+      }}
+      onSelect={onSelect}
+      options={galpon}
+    />
+  );
   return (
-    <Card extra={extra}>
+    <Card title={title} extra={extra}>
+      <Typography.Title level={2}>Galpon {id}</Typography.Title>
       <Table
         bordered={true}
-        rowKey="hora"
+        rowKey="fecha"
         loading={loading}
         dataSource={dataSource}
         columns={columns}
-        expandable={{
-          expandedRowRender,
-          defaultExpandedRowKeys: ["0"],
-        }}
         pagination={{ defaultPageSize: PAGES_SIZE }}
       />
       ;
       <Modal
-        title={
-          isUpdate ? "Modificar Galpon" : "Registrar temperatura & humedad"
-        }
+        title="Registrar temperatura & humedad"
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
       >
-        {isUpdate ? (
-          ""
-        ) : (
-          <Form form={form} onFinish={onFinish}>
-            <Form.Item
-              label="Fecha"
-              name="fecha"
-              rules={[
-                {
-                  required: true,
-                },
-              ]}
-            >
-              <DatePicker />
-            </Form.Item>
+        <Form form={form} onFinish={onFinish}>
+          <Form.Item
+            label="Galpon"
+            name="id_galpon"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <Select>
+              {galpon.map((ele) => (
+                <Select.Option value={ele.value} key={ele.value}>
+                  {ele.value}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
 
-            <Form.Item
-              label="Hora"
-              name="hora"
-              rules={[
-                {
-                  required: true,
-                },
-                {
-                  pattern: /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/,
-                  message: "Invalido",
-                },
-              ]}
-            >
-              <Input placeholder="Formato: HH:mm" />
-            </Form.Item>
+          <Form.Item
+            label="Fecha"
+            name="fecha"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <DatePicker showTime />
+          </Form.Item>
 
-            <Form.Item
-              label="Temperatura"
-              name="temperatura"
-              rules={[
-                {
-                  required: true,
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Humedad"
-              name="humedad"
-              rules={[
-                {
-                  required: true,
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-          </Form>
-        )}
+          <Form.Item
+            label="Temperatura"
+            name="temperatura"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Humedad"
+            name="humedad"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+        </Form>
       </Modal>
     </Card>
   );

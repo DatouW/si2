@@ -4,6 +4,8 @@ const batchesController = require("../controllers/prodAve");
 
 router.get("", batchesController.getBatchList);
 
+router.get("/ids", batchesController.getBatchId);
+
 router.post("", batchesController.addBatch);
 
 router.put("", batchesController.editBatch);

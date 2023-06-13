@@ -4,21 +4,21 @@ const sequelize = require("../database");
 const Ambiente = sequelize.define(
   "Ambiente",
   {
+    id_galpon: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      allowNull: false,
+    },
     fecha: {
       type: DataTypes.DATE,
       primaryKey: true,
       allowNull: false,
     },
-    hora: {
-      type: DataTypes.TIME,
-      primaryKey: true,
-      allowNull: false,
-    },
     temperatura: {
-      type: DataTypes.STRING,
+      type: DataTypes.REAL(4, 2),
     },
     humedad: {
-      type: DataTypes.STRING,
+      type: DataTypes.REAL(4, 2),
     },
   },
   {

@@ -25,8 +25,12 @@ import {
   reqSpeciesList,
   reqUpdateShedBatch,
 } from "../../api";
+import { DATEFORMAT, PAGES_SIZE } from "../../utils/constant";
+import storageUtils from "../../utils/storageUtils";
+import dayjs from "dayjs";
 const { Search } = Input;
 const { Option } = Select;
+const NOMBRE_USUARIO = storageUtils.getUser().nombre_usuario;
 
 export default function ProdAve() {
   const [loading, setLoading] = useState(false);
@@ -66,7 +70,7 @@ export default function ProdAve() {
   }, []);
 
   const onSelect = async (value, id_lote) => {
-    console.log(value, id_lote);
+    // console.log(value, id_lote);
     const result = (await reqUpdateShedBatch(id_lote, value)).data;
     if (result.status === 0) {
       message.success(result.msg);
@@ -85,6 +89,22 @@ export default function ProdAve() {
       dataIndex: "fecha_ingreso",
     },
     {
+      title: "Origen",
+      dataIndex: "origen",
+      render: (o) => {
+        switch (o) {
+          case "c":
+            return "Comprado";
+          case "n":
+            return "Nacido en granja";
+          case "d":
+            return "Desconocido";
+          default:
+            return "-";
+        }
+      },
+    },
+    {
       title: "Especie",
       dataIndex: "ave",
       render: (ave) => ave.especie,
@@ -94,36 +114,47 @@ export default function ProdAve() {
       dataIndex: "cantidad",
     },
     {
-      title: "Fecha salida",
-      dataIndex: "fecha_salida",
-      render: (fs) => (fs === null ? "-" : fs),
-    },
-    {
-      title: "Destino",
-      dataIndex: "destino",
-      render: (destino) => {
-        switch (destino) {
-          case "s":
-            return "Sacrificio y procesamiento";
-          case "v":
-            return "Venta como aves vivas";
-          case "pr":
-            return "En producción";
-          default:
-            return "-";
-        }
+      title: "Mortalidad",
+      render: (lote) => {
+        const mor = (lote.mortalidad / lote.cantidad) * 100;
+        return `${mor}% (${lote.mortalidad})`;
       },
     },
-    {
-      title: "Archivado",
-      dataIndex: "archivado",
-      render: (arc) => (arc === true ? "Si" : "No"),
-    },
-    {
-      title: "Descripcion",
-      dataIndex: "descripcion",
-      render: (des) => (des === null ? " - " : des),
-    },
+    // {
+    //   title:"Edad",
+
+    // }
+    // {
+    //   title: "Fecha salida",
+    //   dataIndex: "fecha_salida",
+    //   render: (fs) => (fs === null ? "-" : fs),
+    // },
+    // {
+    //   title: "Destino",
+    //   dataIndex: "destino",
+    //   render: (destino) => {
+    //     switch (destino) {
+    //       case "s":
+    //         return "Sacrificio y procesamiento";
+    //       case "v":
+    //         return "Venta como aves vivas";
+    //       case "pr":
+    //         return "En producción";
+    //       default:
+    //         return "-";
+    //     }
+    //   },
+    // },
+    // {
+    //   title: "Archivado",
+    //   dataIndex: "archivado",
+    //   render: (arc) => (arc === true ? "Si" : "No"),
+    // },
+    // {
+    //   title: "Descripcion",
+    //   dataIndex: "descripcion",
+    //   render: (des) => (des === null ? " - " : des),
+    // },
     {
       title: "Galpon",
       render: (lote) => (
@@ -170,7 +201,8 @@ export default function ProdAve() {
     if (isUpdate) {
       form.setFieldsValue({
         nombre: lote.nombre,
-        fecha_ingreso: moment(lote.fecha_ingreso, "YYYY/MM/DD"),
+        fecha_ingreso: dayjs(lote.fecha_ingreso, DATEFORMAT),
+        origen: lote.origen,
         cantidad: lote.cantidad,
         descripcion: lote.descripcion,
         id_ave: lote.id_ave,
@@ -190,6 +222,7 @@ export default function ProdAve() {
     //
     // console.log(value);
     let result;
+    value.nombre_usuario = NOMBRE_USUARIO;
     if (isUpdate) {
       value.id_lote = id;
       result = (await reqEditBatch(value)).data;
@@ -216,7 +249,7 @@ export default function ProdAve() {
       icon: <ExclamationCircleOutlined />,
       content: "¿Estás seguro de eliminar este lote?",
       onOk: async () => {
-        const result = (await reqDeleteBatch(id_lote)).data;
+        const result = (await reqDeleteBatch(id_lote, NOMBRE_USUARIO)).data;
         if (result.status === 0) {
           let index = dataSource.findIndex((lote) => lote.id_lote === id_lote);
           dataSource.splice(index, 1);
@@ -273,7 +306,7 @@ export default function ProdAve() {
         loading={loading}
         dataSource={dataSource}
         columns={columns}
-        pagination={{ defaultPageSize: 6 }}
+        pagination={{ defaultPageSize: PAGES_SIZE }}
       />
       ;
       <Modal
@@ -305,6 +338,22 @@ export default function ProdAve() {
             ]}
           >
             <DatePicker />
+          </Form.Item>
+
+          <Form.Item
+            label="Origen"
+            name="origen"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <Select placeholder="Seleccione" allowClear>
+              <Option value="c">Comprado</Option>
+              <Option value="n">Nacido en granja</Option>
+              <Option value="d">Desconocido</Option>
+            </Select>
           </Form.Item>
 
           <Form.Item

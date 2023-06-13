@@ -1,6 +1,8 @@
 export const BASE_URL = "http://localhost:5000";
 
 export const PAGES_SIZE = 5;
+export const DATEHOURFORMAT = "YYYY-MM-DD HH:mm:ss";
+export const DATEFORMAT = "YYYY-MM-DD";
 
 export const formItemLayout = {
   labelCol: {

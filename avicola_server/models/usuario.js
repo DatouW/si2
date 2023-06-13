@@ -22,6 +22,15 @@ const Usuario = sequelize.define(
     id_rol: {
       type: DataTypes.INTEGER,
     },
+    error: {
+      type: DataTypes.SMALLINT,
+      defaultValue: 0,
+    },
+    hora: DataTypes.DATE,
+    bloqueado: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   },
   {
     tableName: "usuario",

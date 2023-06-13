@@ -1,35 +1,21 @@
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Card, Form, Input, Col, Row, message } from "antd";
 import "./login.css";
-import { NavLink, useNavigate } from "react-router-dom";
-import { reqLogin } from "../api";
-import storageUtils from "../utils/storageUtils";
-import { useEffect } from "react";
+import { NavLink } from "react-router-dom";
+import { reqPwd } from "../api";
+
 const { Item } = Form;
 
-const Login = () => {
-  const navigate = useNavigate();
+const Password = () => {
   const onFinish = async (values) => {
-    const { nombre_usuario, contraseña } = values;
-    // console.log(username, password);
-    const result = (await reqLogin(nombre_usuario, contraseña)).data;
+    const result = (await reqPwd(values)).data;
     if (result.status === 0) {
-      message.success("Inicio de sesión con éxito");
-      //guardar datos del usuario
-      const user = result.data;
-      storageUtils.saveUser(user); // guardar en localStorage
-      navigate("/", { replace: true });
+      message.success("Contraseña modificada.");
     } else {
       message.error(result.msg);
     }
   };
 
-  useEffect(() => {
-    let isAuth = storageUtils.getUser().token;
-    if (isAuth) {
-      navigate("/");
-    }
-  });
   const title = (
     <div
       style={{
@@ -104,6 +90,44 @@ const Login = () => {
                   placeholder="Contraseña"
                 />
               </Item>
+              <Form.Item
+                name="newPwd"
+                // label="Nueva Contraseña"
+                rules={[
+                  {
+                    required: true,
+                  },
+                ]}
+                hasFeedback
+              >
+                <Input.Password placeholder="Nueva Contraseña" />
+              </Form.Item>
+
+              <Form.Item
+                name="confirm"
+                // label="Confirmar contraseña"
+                dependencies={["newPwd"]}
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                  },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue("newPwd") === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(
+                        new Error(
+                          "Las dos contraseñas introducidas no coinciden!"
+                        )
+                      );
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password placeholder="Confirmar Contraseña" />
+              </Form.Item>
               <Item
               // wrapperCol={{
               //   offset: 7,
@@ -116,9 +140,9 @@ const Login = () => {
                   // className="login-form-button"
                   style={{ width: "100%" }}
                 >
-                  Iniciar Sesión
+                  Cambiar Contraseña
                 </Button>
-                <NavLink to="/changepwd">Cambiar contraseña</NavLink>
+                <NavLink to="/login">Iniciar Sesión</NavLink>
               </Item>
             </Form>
           </Card>
@@ -127,4 +151,4 @@ const Login = () => {
     </div>
   );
 };
-export default Login;
+export default Password;

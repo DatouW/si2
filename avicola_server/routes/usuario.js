@@ -6,4 +6,8 @@ router.get("", userController.getUserList);
 
 router.put("/pwd", userController.putPwd);
 
+router.get("/log", userController.getLogList);
+
+router.put("/role", userController.putRole);
+
 module.exports = router;

@@ -4,6 +4,9 @@ import { PlusOutlined } from "@ant-design/icons";
 import { reqAddRole, reqRoleList, reqUpdateRole } from "../../api";
 
 import AuthForm from "./auth-form";
+import storageUtils from "../../utils/storageUtils";
+
+const NOMBRE_USUARIO = storageUtils.getUser().nombre_usuario;
 
 const columns = [
   {
@@ -33,7 +36,7 @@ const Rol = () => {
       const menu = auth.current.getMenu();
       // console.log("getmenu", menu);
 
-      const result = (await reqUpdateRole(id_rol, menu)).data;
+      const result = (await reqUpdateRole(id_rol, menu, NOMBRE_USUARIO)).data;
       if (result.status === 0) {
         message.success(result.msg);
 
@@ -108,6 +111,7 @@ const Rol = () => {
 
   const onFinish = async (value) => {
     //   console.log(value);
+    value.nombre_usuario = NOMBRE_USUARIO;
     const result = (await reqAddRole(value)).data;
     if (result.status === 0) {
       message.success("rol creado existosamente");

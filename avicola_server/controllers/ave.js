@@ -1,4 +1,5 @@
 const Ave = require("../models/ave");
+const { registerLog } = require("./bitacora");
 
 exports.getSpeciesList = async (req, res) => {
   try {
@@ -12,13 +13,17 @@ exports.getSpeciesList = async (req, res) => {
 };
 
 exports.addSpecies = async (req, res) => {
-  const { especie } = req.body;
+  const { especie, nombre_usuario } = req.body;
   try {
     const es = await Ave.findOne({ where: { especie } });
     if (es) {
       res.send({ status: 1, msg: "Ya existe la especie introducida" });
     } else {
       const nueva = await Ave.create({ especie });
+      await registerLog(
+        nombre_usuario,
+        `Añadir nueva especie de ave - ${especie}`
+      );
       res.send({ status: 0, data: nueva });
     }
   } catch (error) {
@@ -28,14 +33,15 @@ exports.addSpecies = async (req, res) => {
 };
 
 exports.UpdateSpecies = async (req, res) => {
-  const { id, especie } = req.body;
-  console.log(req.body);
+  const { id, especie, nombre_usuario } = req.body;
+  // console.log(req.body);
   try {
     const es = await Ave.findByPk(id);
     console.log(id);
     if (es) {
       es.especie = especie;
       await es.save();
+      await registerLog(nombre_usuario, `Modificar de ave ${especie}`);
       res.send({ status: 0, msg: "" });
     } else {
       res.send({ status: 1, data: "Error al modificar..." });

@@ -2,7 +2,7 @@ import Galpon from "../pages/galpon/galpones";
 import Home from "../pages/home";
 import Login from "../pages/login";
 import Produccion from "../pages/Produccion";
-import Salud from "../pages/salud";
+import Salud from "../pages/salud/salud";
 import Cuarentena from "../pages/cuarentena";
 import Reporte from "../pages/reporte";
 import Usuario from "../pages/usuario/usuario";
@@ -12,6 +12,11 @@ import ProdHuevo from "../pages/Produccion/prod-huevo";
 import Ambiente from "../pages/galpon/ambiente";
 import Rol from "../pages/usuario/rol";
 import Ave from "../pages/ave";
+import Mortandad from "../pages/galpon/mortandad";
+import Password from "../pages/password";
+import Vacuna from "../pages/salud/vacuna";
+import Bitacora from "../pages/usuario/bitacora";
+import PdfReport from "../pages/pdf";
 
 const router = [
   {
@@ -31,12 +36,20 @@ const router = [
         element: <Rol />,
       },
       {
+        path: "log",
+        element: <Bitacora />,
+      },
+      {
         path: "galpones",
         element: <Galpon />,
       },
       {
         path: "ambiente",
         element: <Ambiente />,
+      },
+      {
+        path: "mortandad",
+        element: <Mortandad />,
       },
       {
         path: "ave",
@@ -67,6 +80,10 @@ const router = [
         element: <Salud />,
       },
       {
+        path: "vacuna",
+        element: <Vacuna />,
+      },
+      {
         path: "usuario",
         element: <Usuario />,
       },
@@ -79,6 +96,14 @@ const router = [
   {
     path: "/login",
     element: <Login />,
+  },
+  {
+    path: "/changepwd",
+    element: <Password />,
+  },
+  {
+    path: "/pdf",
+    element: <PdfReport />,
   },
 ];
 

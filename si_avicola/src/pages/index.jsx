@@ -3,6 +3,8 @@ import { Outlet, useNavigate } from "react-router-dom";
 import LeftNav from "../components/left-nav";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import storageUtils from "../utils/storageUtils";
+import { reqLogOut } from "../api";
+
 const { Sider, Content, Header } = Layout;
 
 const Mylayout = () => {
@@ -15,9 +17,16 @@ const Mylayout = () => {
     Modal.confirm({
       icon: <ExclamationCircleOutlined />,
       content: "¿Estás seguro de que quieres cerrar la sesión?",
-      onOk: () => {
-        storageUtils.removeUser();
-        navigate("/login", { replace: true });
+      onOk: async () => {
+        // const { nombre_usuario } = storageUtils.getUser();
+        let nombre_usuario = "jajaja";
+        // console.log(nombre_usuario);
+        const result = (await reqLogOut(nombre_usuario)).data;
+        // console.log(result);
+        if (result.status === 0) {
+          storageUtils.removeUser();
+          navigate("/login", { replace: true });
+        }
       },
     });
   };

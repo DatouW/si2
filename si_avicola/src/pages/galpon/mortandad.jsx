@@ -1,37 +1,44 @@
 import React, { useEffect, useState } from "react";
 import {
   Card,
-  Input,
   Button,
   Table,
   Modal,
   message,
   Form,
   InputNumber,
+  DatePicker,
+  Select,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { reqUpdateShed, reqAddShed, reqShedList } from "../../api";
-import { PAGES_SIZE } from "../../utils/constant";
+import { reqBatchId, reqMortList, reqAddMort, reqUpdateMort } from "../../api";
+import {
+  DATEHOURFORMAT,
+  PAGES_SIZE,
+  formItemLayout,
+} from "../../utils/constant";
+import moment from "moment";
 import storageUtils from "../../utils/storageUtils";
 
 const NOMBRE_USUARIO = storageUtils.getUser().nombre_usuario;
-export default function Galpon() {
+
+export default function Mortandad() {
   const [loading, setLoading] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [id, setId] = useState();
+  const [lotes, setLotes] = useState([]);
   const [form] = Form.useForm();
 
   const getData = async () => {
     setLoading(true);
-
-    const result = (await reqShedList()).data;
-
+    const result = (await reqMortList()).data;
+    const bat = (await reqBatchId()).data;
     // console.log(result);
     setLoading(false);
     if (result.status === 0) {
       setDataSource(result.data);
+      setLotes(bat.data);
       // console.log(result.data);
     } else {
       message.error(result.msg);
@@ -42,54 +49,26 @@ export default function Galpon() {
     getData();
   }, []);
 
-  const expandedRowRender = (record) => {
-    const data = record.lotes;
-
-    const columns = [
-      {
-        title: "Lote",
-        dataIndex: "nombre",
-      },
-      {
-        title: "Cantidad",
-        render: (rec) => rec.cantidad - rec.mortalidad,
-      },
-      {
-        title: "Cantidad defuncion",
-        dataIndex: "mortalidad",
-      },
-    ];
-
-    return (
-      <Table
-        columns={columns}
-        dataSource={data}
-        pagination={false}
-        rowKey={(data) => data.id_lote}
-      />
-    );
-  };
-
   const columns = [
     {
-      title: "Galpon",
-      dataIndex: "id_galpon",
+      title: "Lote",
+      dataIndex: "lote",
+      render: (lote) => lote.nombre,
     },
     {
-      title: "Dimension (m^2)",
-      dataIndex: "dimension",
+      title: "Fecha",
+      dataIndex: "fecha",
+      render: (f) => {
+        return moment(f).format(DATEHOURFORMAT);
+      },
     },
     {
-      title: "Capacidad",
-      dataIndex: "capacidad",
-    },
-    {
-      title: "Capacidad Libre",
-      dataIndex: "capacidad_libre",
+      title: "Cantidad Defuncion",
+      dataIndex: "cantidad_defuncion",
     },
     {
       title: "Acción",
-      render: (galpon) => {
+      render: (rec) => {
         return (
           <span>
             <Button
@@ -97,8 +76,7 @@ export default function Galpon() {
               style={{ marginRight: 10 }}
               onClick={() => {
                 setIsUpdate((_) => true);
-                setId(galpon.id_galpon);
-                showModal(galpon, true);
+                showModal(rec, true);
               }}
             >
               Modificar
@@ -109,11 +87,12 @@ export default function Galpon() {
     },
   ];
 
-  const showModal = (galpon, isUpdate) => {
+  const showModal = (rec, isUpdate) => {
     if (isUpdate) {
       form.setFieldsValue({
-        dimension: galpon.dimension,
-        capacidad: galpon.capacidad,
+        id_lote: rec.id_lote,
+        fecha: moment(rec.fecha, DATEHOURFORMAT),
+        cantidad_defuncion: rec.cantidad_defuncion,
       });
     }
     setIsModalOpen(true);
@@ -131,19 +110,24 @@ export default function Galpon() {
     let result;
     value.nombre_usuario = NOMBRE_USUARIO;
     if (isUpdate) {
-      value.id_galpon = id;
-      result = (await reqUpdateShed(value)).data;
+      result = (await reqUpdateMort(value)).data;
     } else {
-      result = (await reqAddShed(value)).data;
+      result = (await reqAddMort(value)).data;
     }
-    console.log(result);
+    // console.log(result);
     if (result.status === 0) {
       if (isUpdate) {
-        let index = dataSource.findIndex((galpon) => galpon.id_galpon === id);
+        let index = dataSource.findIndex(
+          (ele) => ele.id_lote === value.id_lote
+        );
         dataSource[index] = result.data;
         setDataSource([...dataSource]);
       } else {
-        setDataSource([...dataSource, result.data]);
+        let lote = lotes.find((ele) =>
+          ele.id_lote === value.id_lote ? ele : null
+        );
+        result.data.lote = lote;
+        setDataSource([result.data, ...dataSource]);
       }
       message.success(result.msg);
     }
@@ -160,7 +144,7 @@ export default function Galpon() {
       }}
     >
       <PlusOutlined />
-      Añadir Nuevo Galpon
+      Registrar mortandad
     </Button>
   );
 
@@ -168,56 +152,60 @@ export default function Galpon() {
     <Card extra={extra}>
       <Table
         bordered={true}
-        rowKey="id_galpon"
+        rowKey="fecha"
         loading={loading}
         dataSource={dataSource}
         columns={columns}
-        expandable={{
-          expandedRowRender,
-          defaultExpandedRowKeys: ["0"],
-        }}
         pagination={{ defaultPageSize: PAGES_SIZE }}
       />
       ;
       <Modal
-        title={isUpdate ? "Modificar Galpon" : "Añadir Galpon"}
+        title={isUpdate ? "Modificar Mortandad" : "Añadir Mortandad"}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
       >
-        <Form form={form} onFinish={onFinish}>
-          {isUpdate ? (
-            <Input value={id} disabled style={{ marginBottom: 10 }}></Input>
-          ) : (
-            ""
-          )}
-
+        <Form form={form} onFinish={onFinish} {...formItemLayout}>
           <Form.Item
-            label="Dimensiones"
-            name="dimension"
+            label="Lote"
+            name="id_lote"
             rules={[
               {
                 required: true,
               },
-              {
-                pattern: /^\d+x\d+$/,
-                message: "Por favor seguir el formato",
-              },
             ]}
           >
-            <Input placeholder="Formato a introducir: anchoxlargo. Ej:6x18" />
+            <Select disabled={isUpdate}>
+              {lotes.map((ele) => (
+                <Select.Option value={ele.id_lote} key={ele.id_lote}>
+                  {ele.nombre}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
 
           <Form.Item
-            label="Capacidad"
-            name="capacidad"
+            label="Fecha"
+            name="fecha"
             rules={[
               {
                 required: true,
               },
             ]}
           >
-            <InputNumber min={1} />
+            <DatePicker showTime format={DATEHOURFORMAT} disabled={isUpdate} />
+          </Form.Item>
+
+          <Form.Item
+            label="Cantidad Defuncion "
+            name="cantidad_defuncion"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <InputNumber min={0} />
           </Form.Item>
         </Form>
       </Modal>
