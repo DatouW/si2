@@ -18,9 +18,7 @@ const Mylayout = () => {
       icon: <ExclamationCircleOutlined />,
       content: "¿Estás seguro de que quieres cerrar la sesión?",
       onOk: async () => {
-        // const { nombre_usuario } = storageUtils.getUser();
-        let nombre_usuario = "jajaja";
-        // console.log(nombre_usuario);
+        const { nombre_usuario } = storageUtils.getUser();
         const result = (await reqLogOut(nombre_usuario)).data;
         // console.log(result);
         if (result.status === 0) {

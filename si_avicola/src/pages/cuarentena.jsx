@@ -145,16 +145,17 @@ export default function Cuarentena() {
       if (endDate) result = (await reqEndDate(value)).data;
       else result = (await reqUpdateQuar(value)).data;
     }
+    // console.log(result);
     if (result.status === 0) {
       if (isAdd) {
-        setData([result.data, ...data]);
+        data.unshift(result.data);
       } else {
         let index = data.findIndex((ele) => ele.id_cuar === id);
         data[index] = { ...data[index], ...value };
         // console.log(data);
-        setData([...data]);
         message.success(result.msg);
       }
+      setData([...data]);
       // console.log(data);
     } else {
       message.error(result.msg);

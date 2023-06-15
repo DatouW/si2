@@ -163,7 +163,7 @@ exports.changePwd = async (req, res) => {
 
 exports.logout = async (req, res) => {
   const { nombre_usuario } = req.query;
-  console.log(nombre_usuario);
+  console.log("cierre sesion", nombre_usuario);
   await registerLog(nombre_usuario, "Cerrar Sesion");
   res.send({ status: 0 });
 };

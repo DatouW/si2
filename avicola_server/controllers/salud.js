@@ -4,6 +4,12 @@ const Vacuna = require("../models/vacuna");
 const GalponVacuna = require("../models/galponvacuna");
 const { registerLog } = require("./bitacora");
 
+async function getVacName(id_vac) {
+  const vac = await Vacuna.findByPk(id_vac, {
+    attributes: ["nombre"],
+  });
+  return vac.nombre;
+}
 exports.getList = async (req, res) => {
   let sql =
     "SELECT g.id_galpon, v.nombre, gv.fecha, v.id_vac, gv.id " +
@@ -39,7 +45,7 @@ exports.updateRecord = async (req, res) => {
           nombre_usuario,
           "Modificacion del registro de vacunacion"
         );
-
+        vacc.dataValues.nombre = await getVacName(id_vac);
         res.send({
           status: 0,
           data: vacc,
@@ -52,7 +58,7 @@ exports.updateRecord = async (req, res) => {
       res.send({ status: 1, msg: "No se ha encontrado el registro" });
     }
   } catch (error) {
-    console.log("vaccine add", error);
+    console.log("vac record update", error);
     res.send({ status: 1, msg: error });
   }
 };
@@ -76,7 +82,8 @@ exports.addRecord = async (req, res) => {
         fecha,
       });
       await registerLog(nombre_usuario, "Registrar fecha de vacunacion");
-
+      vac.dataValues.nombre = await getVacName(id_vac);
+      // console.log(vac);
       res.send({
         status: 0,
         data: vac,

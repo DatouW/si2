@@ -22,7 +22,7 @@ exports.addSpecies = async (req, res) => {
       const nueva = await Ave.create({ especie });
       await registerLog(
         nombre_usuario,
-        `Añadir nueva especie de ave - ${especie}`
+        `Añadir nueva especie de ave: ${especie}`
       );
       res.send({ status: 0, data: nueva });
     }

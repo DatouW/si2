@@ -48,6 +48,7 @@ const Password = () => {
             style={{
               marginTop: "150px",
               boxShadow: "5px 5px 10px #ccc",
+              backgroundColor: "transparent",
             }}
           >
             <Form

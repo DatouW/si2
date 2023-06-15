@@ -1,7 +1,10 @@
 .login-page{
     min-height: 100vh;
     min-width: 100vw;
-    background: linear-gradient(to bottom, #65aef6, #858dfd);
+    background-image: url('../assets/images/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
   .login-container{
     width: 300px;

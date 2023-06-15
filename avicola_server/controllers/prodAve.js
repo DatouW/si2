@@ -1,10 +1,21 @@
 const sequelize = require("../database");
 const Ave = require("../models/ave");
-const Lote = require("../models/lote");
 const { Op } = require("sequelize");
 const { registerLog } = require("./bitacora");
-const { Galpon } = require("../models");
+const { Galpon, Lote } = require("../models");
 
+async function createBatch(data) {
+  const { nombre, fecha_ingreso, origen, descripcion, cantidad, id_ave } = data;
+
+  return await Lote.create({
+    nombre,
+    fecha_ingreso,
+    origen,
+    descripcion,
+    cantidad,
+    id_ave,
+  });
+}
 exports.getBatchList = async (req, res) => {
   try {
     const batches = await Lote.findAll({
@@ -35,35 +46,33 @@ exports.getBatchId = async (req, res) => {
     res.send({ status: 1, msg: error });
   }
 };
+
 exports.addBatch = async (req, res) => {
   const {
     nombre,
-    fecha_ingreso,
-    origen,
-    descripcion,
-    cantidad,
-    id_ave,
+    // fecha_ingreso,
+    // origen,
+    // descripcion,
+    // cantidad,
+    // id_ave,
     nombre_usuario,
   } = req.body;
+
   try {
     const batch = await Lote.findOne({
       where: {
         nombre,
       },
     });
-    if (batch) {
-      res.send({ status: 1, msg: "ya existe el producto" });
-    } else {
-      const b = await Lote.create({
-        nombre,
-        fecha_ingreso,
-        descripcion,
-        cantidad,
-        origen,
-        id_ave,
-      });
+
+    if (!batch) {
+      let bat = await createBatch(req.body);
+
+      // console.log("bat--", newb);
       await registerLog(nombre_usuario, "Ingresar nuevo lote");
-      res.send({ status: 0, msg: "producto anadido exitosamente", data: b });
+      res.send({ status: 0, msg: "lote anadido exitosamente", data: bat });
+    } else {
+      res.send({ status: 1, msg: "ya existe lote con el mismo nombre" });
     }
   } catch (error) {
     res.send({ status: 1, msg: error });

@@ -66,8 +66,13 @@ exports.setEndDate = async (req, res) => {
 
   try {
     const cuar = await Cuarentena.findByPk(id_cuar);
-
+    // console.log(cuar);
     if (cuar) {
+      const fi = moment(cuar.fecha_ingreso, "YYYY-MM-DD");
+      // console.log(fi.isAfter(fecha_salida));
+      if (fi.isAfter(fecha_salida)) {
+        return res.send({ status: 1, msg: "Fecha de salida incorrecta" });
+      }
       cuar.fecha_salida = fecha_salida;
       await cuar.save();
       await registerLog(
@@ -76,11 +81,11 @@ exports.setEndDate = async (req, res) => {
       );
       res.send({ status: 0, msg: "Cuarentena finalizada" });
     } else {
-      res.send({ status: 1, data: "Error al modificar..." });
+      res.send({ status: 1, msg: "Error al modificar..." });
     }
   } catch (error) {
     console.log(error);
-    res.send({ status: 1, msg: error });
+    res.send({ status: 1, msg: "Se produjo un error..." });
   }
 };
 

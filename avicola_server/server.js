@@ -104,6 +104,7 @@ app.use((err, req, res, next) => {
 
     app.listen(PORT, () => {
       console.log(`server running on port ${PORT}`);
+      console.log(process.env.tz);
     });
   } catch (error) {
     console.error("Unable to connect to the database:", error);

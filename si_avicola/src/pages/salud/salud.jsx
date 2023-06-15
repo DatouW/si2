@@ -89,7 +89,7 @@ export default function Salud() {
               style={{ marginRight: 10 }}
               onClick={() => {
                 setIsUpdate((_) => true);
-                setId(record.id_lote);
+                setId(record.id);
                 showModal(record, true);
               }}
             >
@@ -133,13 +133,15 @@ export default function Salud() {
     // console.log(result);
     if (result.status === 0) {
       value.fecha = moment(value.fecha).format("YYYY-MM-DD");
-      if (result.data) {
-        setDataSource([result.data, ...dataSource]);
-      } else {
+      console.log(result.data);
+      if (isUpdate) {
         let index = dataSource.findIndex((rec) => rec.id === id);
-        dataSource[index] = { ...dataSource[index], ...value };
-        setDataSource([...dataSource]);
+        dataSource[index] = result.data;
+      } else {
+        dataSource.unshift(result.data);
       }
+
+      setDataSource([...dataSource]);
       message.success(result.msg);
     }
     setIsModalOpen(false);

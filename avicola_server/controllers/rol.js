@@ -48,7 +48,10 @@ exports.updatePerm = async (req, res) => {
     if (rol) {
       rol.permisos = permisos;
       await rol.save();
-      await registerLog(nombre_usuario, `Modificar permismos de ${permisos}`);
+      await registerLog(
+        nombre_usuario,
+        `Modificar permisos de rol ${rol.nombre}`
+      );
       res.send({ status: 0, msg: "permisos actualizados exitosamente" });
     } else {
       res.send({ status: 1, msg: "no existe este tipo de usuario" });

@@ -3,7 +3,6 @@ const Rol = require("./rol");
 const Usuario = require("./usuario");
 const Galpon = require("./galpon");
 const Ave = require("./ave");
-const { Fecha, Ambiente } = require("./ambiente");
 
 // rol --- usuario
 Rol.hasMany(Usuario, {

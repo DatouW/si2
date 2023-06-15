@@ -232,7 +232,8 @@ export default function ProdAve() {
     if (result.status === 0) {
       value.fecha_ingreso = moment(value.fecha).format("YYYY-MM-DD");
       if (result.data) {
-        setDataSource([...dataSource, result.data]);
+        dataSource.push(result.data);
+        setDataSource([...dataSource]);
       } else {
         let index = dataSource.findIndex((lote) => lote.id_lote === id);
         dataSource[index] = { ...dataSource[index], ...value };

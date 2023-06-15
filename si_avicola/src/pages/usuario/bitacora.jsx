@@ -27,7 +27,7 @@ export default function Bitacora() {
 
   const columns = [
     {
-      title: "Fecha",
+      title: "Fecha Hora",
       dataIndex: "fecha",
       render: (fecha) => moment(fecha).format(DATEHOURFORMAT),
     },

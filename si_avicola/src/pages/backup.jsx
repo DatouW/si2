@@ -24,7 +24,6 @@ const NOMBRE_USUARIO = storageUtils.getUser().nombre_usuario;
 
 export default function Backup() {
   const [visible, setVisible] = useState(false);
-  const [initData, setInitData] = useState({});
   const [backs, setBacks] = useState([]);
   const [bForm] = Form.useForm();
 
@@ -38,8 +37,8 @@ export default function Backup() {
       if (data.auto === false) {
         setVisible(true);
       }
-      console.log(data);
-      setInitData({
+      // console.log(data);
+      bForm.setFieldsValue({
         auto: data.auto,
         hora: dayjs(
           `${data.hour.toString().padStart(2, "0")}:${data.min
@@ -82,12 +81,12 @@ export default function Backup() {
   };
 
   const handleChange = (value) => {
-    console.log(value);
+    // console.log(value);
     Modal.confirm({
       icon: <ExclamationCircleOutlined />,
       content: "¿Estás seguro de realizar el restore de base de datos?",
       onOk: async () => {
-        // console.log(dataSource);
+        // console.log(value, NOMBRE_USUARIO);
         const { data } = await reqRestorDB(value, NOMBRE_USUARIO);
         if (data.status === 0) {
           message.success(data.msg);
@@ -101,12 +100,7 @@ export default function Backup() {
   return (
     <>
       <Divider>BACKUP</Divider>
-      <Form
-        form={bForm}
-        onFinish={onFinish}
-        {...formItemLayout}
-        initialValues={{ initData }}
-      >
+      <Form form={bForm} onFinish={onFinish} {...formItemLayout}>
         <Form.Item
           label="Backup automatico"
           name="auto"

@@ -109,6 +109,7 @@ export default function Mortandad() {
     // console.log(value);
     let result;
     value.nombre_usuario = NOMBRE_USUARIO;
+    // console.log(value);
     if (isUpdate) {
       result = (await reqUpdateMort(value)).data;
     } else {

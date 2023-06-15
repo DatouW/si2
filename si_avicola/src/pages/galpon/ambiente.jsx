@@ -100,12 +100,12 @@ export default function Ambiente() {
         if (temp >= 18 && temp <= 35) {
           str = "";
         } else if (temp < 18) {
-          str = "Utilizar sistema de Ventilacion";
+          str = "Utilizar sistema de Calefaccion ";
         } else {
-          str = "Utilizar sistema de Calefaccion";
+          str = "Utilizar sistema de Ventilacion";
         }
         if (str !== "") {
-          str += "\n";
+          str += "  ";
         }
         if (hum < 40) {
           str += "Utilizar sistema de nebulización";

@@ -110,8 +110,8 @@ const Rol = () => {
   const normalize = (value, _, prevValues) => value.toUpperCase();
 
   const onFinish = async (value) => {
-    //   console.log(value);
     value.nombre_usuario = NOMBRE_USUARIO;
+    console.log(value);
     const result = (await reqAddRole(value)).data;
     if (result.status === 0) {
       message.success("rol creado existosamente");

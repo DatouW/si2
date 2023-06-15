@@ -114,9 +114,9 @@ export default function Usuario() {
     // console.log(value);
     let result;
     value.username = NOMBRE_USUARIO;
+    // console.log(value);
     if (isAdd) {
       result = (await reqRegister(value)).data;
-      // console.log(value);
     } else {
       value.id_user = id;
       if (isChangeRol) {

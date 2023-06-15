@@ -13,7 +13,7 @@ const AuthForm = forwardRef((props, _ref) => {
   const [prevRow, setPrevRow] = useState(null);
 
   const onCheck = (checkedKeys, _) => {
-    console.log("onCheck", checkedKeys);
+    // console.log("onCheck", checkedKeys);
     setCheckedKeys(checkedKeys);
   };
 
