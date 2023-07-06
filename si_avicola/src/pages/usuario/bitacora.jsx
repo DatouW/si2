@@ -1,6 +1,6 @@
-import { Card, Table, message } from "antd";
+import { Card, Col, Input, Row, Table, message } from "antd";
 import React, { useState, useEffect } from "react";
-import { reqLogList } from "../../api";
+import { reqLogList, reqSearchLogs } from "../../api";
 import { DATEHOURFORMAT, PAGES_SIZE } from "../../utils/constant";
 import moment from "moment";
 
@@ -8,10 +8,13 @@ export default function Bitacora() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
 
-  const getData = async () => {
-    setLoading(true);
-
-    let result = (await reqLogList()).data;
+  const getData = async (response) => {
+    if (response) {
+    } else {
+      setLoading(true);
+      response = await reqLogList();
+    }
+    const result = response.data;
     // console.log(result);
     setLoading(false);
     if (result.status === 0) {
@@ -41,8 +44,31 @@ export default function Bitacora() {
     },
   ];
 
+  const onSearch = async (value) => {
+    const response = await reqSearchLogs(value);
+    getData(response);
+    // console.log(response);
+  };
+
+  const title = (
+    <Row
+      gutter={{
+        xs: 8,
+        sm: 16,
+      }}
+    >
+      <Col className="gutter-row" span={16}>
+        <Input.Search
+          placeholder="Introduzca ..."
+          onSearch={onSearch}
+          enterButton
+        />
+      </Col>
+    </Row>
+  );
+
   return (
-    <Card>
+    <Card title={title}>
       <Table
         bordered={true}
         rowKey="id_log"

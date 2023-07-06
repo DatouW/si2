@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, or } = require("sequelize");
 const Usuario = require("../models/usuario");
 const Rol = require("../models/rol");
 const bcrypt = require("bcryptjs");
@@ -112,6 +112,29 @@ exports.getLogList = async (req, res) => {
       });
     }
   } catch (error) {
+    res.send({ status: 1, msg: error });
+  }
+};
+
+exports.SearchLogs = async (req, res) => {
+  const { str } = req.query;
+  // console.log(str);
+  let regex = `%${str}%`;
+  // console.log(regex);
+  try {
+    const logs = await Bitacora.findAll({
+      where: {
+        [Op.or]: [
+          { username: { [Op.like]: regex } },
+          { operacion: { [Op.like]: regex } },
+          // { fecha: { [Op.like]: regex } },
+        ],
+      },
+      order: [["id_log", "DESC"]],
+    });
+    res.send({ status: 0, data: logs });
+  } catch (error) {
+    console.log(error);
     res.send({ status: 1, msg: error });
   }
 };

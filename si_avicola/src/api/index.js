@@ -13,6 +13,7 @@ export const reqUsersList = (id_rol) => ajax(USER, { id_rol });
 export const reqChangePwd = (value) => ajax(USER + "/pwd", value, "PUT");
 export const reqLogList = () => ajax(USER + "/log");
 export const reqChangeRole = (value) => ajax(USER + "/role", value, "PUT");
+export const reqSearchLogs = (str) => ajax(USER + "/search", { str });
 
 const ROL = "/role";
 export const reqRoleList = () => ajax(ROL);
@@ -32,11 +33,27 @@ export const reqBatchList = () => ajax(PRODAVE);
 export const reqBatchId = () => ajax(PRODAVE + "/ids");
 export const reqAddBatch = (batch) => ajax(PRODAVE, batch, "POST");
 export const reqEditBatch = (batch) => ajax(PRODAVE, batch, "PUT");
+export const reqEndBatch = (batch) => ajax(PRODAVE + "/end", batch, "PUT");
 export const reqDeleteBatch = (id_lote, nombre_usuario) =>
   ajax(PRODAVE, { id_lote, nombre_usuario }, "DELETE");
 export const reqSearchBatch = (str) => ajax(PRODAVE + "/search", { str });
 export const reqUpdateShedBatch = (id_lote, id_galpon, nombre_usuario) =>
   ajax(PRODAVE + "/shed", { id_lote, id_galpon, nombre_usuario }, "PUT");
+
+const PRODHUEVO = "/prod/eggs";
+export const reqEggsList = () => ajax(PRODHUEVO);
+export const reqAddEggRec = (value) => ajax(PRODHUEVO, value, "POST");
+export const reqUpdateEggRec = (value) => ajax(PRODHUEVO, value, "PUT");
+
+export const reqIncuList = () => ajax(PRODHUEVO + "/incu");
+export const reqIncuDetailsById = (id_inc) =>
+  ajax(PRODHUEVO + "/incu/id", { id_inc });
+export const reqaddIncu = (nombre_usuario) =>
+  ajax(PRODHUEVO + "/incu", { nombre_usuario }, "POST");
+export const reqStartIncu = (value) =>
+  ajax(PRODHUEVO + "/incu/start", value, "POST");
+export const reqEndIncu = (value) =>
+  ajax(PRODHUEVO + "/incu/end", value, "POST");
 
 const GALPON = "/galpon";
 export const reqShedList = () => ajax(GALPON);
@@ -44,6 +61,12 @@ export const reqAddShed = (galpon) => ajax(GALPON, galpon, "POST");
 export const reqUpdateShed = (galpon) => ajax(GALPON, galpon, "PUT");
 export const reqShedId = () => ajax(GALPON + "/id");
 export const reqShedIdQuar = () => ajax(GALPON + "/cuar");
+
+export const reqFeedingList = () => ajax(GALPON + "/feeding");
+export const reqAddFeeding = (value) =>
+  ajax(GALPON + "/feeding", value, "POST");
+export const reqUpdateFeeding = (value) =>
+  ajax(GALPON + "/feeding", value, "PUT");
 
 const AMBIENTE = "/weather";
 export const reqAmbienteList = (id_galpon) => ajax(AMBIENTE, { id_galpon });
@@ -61,6 +84,9 @@ export const reqUpdateRecordHealth = (value) => ajax(SALUD, value, "PUT");
 export const reqVaccList = () => ajax(SALUD + "/vac");
 export const reqAddVacc = (value) => ajax(SALUD + "/vac", value, "POST");
 export const reqUpdateVacc = (value) => ajax(SALUD + "/vac", value, "PUT");
+export const reqEnfList = () => ajax(SALUD + "/enf");
+export const reqAddEnf = (value) => ajax(SALUD + "/enf", value, "POST");
+export const reqUpdateEnf = (value) => ajax(SALUD + "/enf", value, "PUT");
 
 const CUARENTENA = "/quar";
 export const reqQuarList = () => ajax(CUARENTENA);
@@ -74,6 +100,7 @@ export const reqDeath = (start, end) => ajax(REPORT, { start, end });
 const SCHEDULE = "/schedule";
 export const reqScheduleDB = (value) => ajax(SCHEDULE, value, "POST");
 export const reqScheduleData = (value) => ajax(SCHEDULE);
+
 const BACKUP = "/back";
 export const reqBackupList = () => ajax(BACKUP + "/list");
 export const reqRestorDB = (filename, nombre_usuario) =>

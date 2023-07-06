@@ -1,12 +1,12 @@
 import { Button, Card, Table, message, Form, Modal, Input } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, EditOutlined } from "@ant-design/icons";
 import React, { useState, useEffect } from "react";
-import { reqAddVacc, reqUpdateVacc, reqVaccList } from "../../api";
-import { PAGES_SIZE } from "../../utils/constant";
+import { reqAddEnf, reqEnfList, reqUpdateEnf } from "../../api";
+import { PAGES_SIZE, formItemLayout } from "../../utils/constant";
 import storageUtils from "../../utils/storageUtils";
 const NOMBRE_USUARIO = storageUtils.getUser().nombre_usuario;
 
-export default function Vacuna() {
+export default function Enfermedad() {
   const [loading, setLoading] = useState(false);
   const [id, setId] = useState();
   const [data, setData] = useState([]);
@@ -18,7 +18,7 @@ export default function Vacuna() {
   const getData = async () => {
     setLoading(true);
 
-    const result = (await reqVaccList()).data;
+    const result = (await reqEnfList()).data;
 
     setLoading(false);
     if (result.status === 0) {
@@ -38,32 +38,31 @@ export default function Vacuna() {
       dataIndex: "nombre",
     },
     {
-      title: "Descripcion",
-      dataIndex: "descripcion",
-      render: (des) => (des === null ? "-" : des),
+      title: "Sintomas",
+      dataIndex: "sintoma",
     },
     {
       title: "Acción",
-      render: (vac) => (
+      render: (enf) => (
         <Button
           type="primary"
           onClick={() => {
-            setId(vac.id);
+            setId(enf.id_enf);
             setIsUpdate(true);
-            showModal(vac, true);
+            showModal(enf, true);
           }}
         >
-          Modificar
+          <EditOutlined />
         </Button>
       ),
     },
   ];
 
-  const showModal = (vac, isUpdate) => {
+  const showModal = (enf, isUpdate) => {
     if (isUpdate) {
       form.setFieldsValue({
-        nombre: vac.nombre,
-        descripcion: vac.descripcion,
+        nombre: enf.nombre,
+        sintoma: enf.sintoma,
       });
     }
     setIsModalOpen(true);
@@ -82,22 +81,30 @@ export default function Vacuna() {
     value.nombre_usuario = NOMBRE_USUARIO;
     // console.log(NOMBRE_USUARIO);
     if (isUpdate) {
-      value.id_vac = id;
-      result = (await reqUpdateVacc(value)).data;
-      // console.log(value);
+      value.id_enf = id;
+      result = (await reqUpdateEnf(value)).data;
     } else {
-      result = (await reqAddVacc(value)).data;
+      result = (await reqAddEnf(value)).data;
     }
+    // console.log(value);
     if (result.status === 0) {
-      if (result.data) {
-        setData([...data, result.data]);
+      if (isUpdate) {
+        let index = data.findIndex((enf) => enf.id_enf === id);
+        let en = {
+          ...data[index],
+          nombre: value.nombre,
+          sintoma: value.sintoma,
+        };
+        data[index] = en;
+        //   console.log(data[index]);
       } else {
-        let index = data.findIndex((vac) => vac.id === id);
-        data[index] = { ...data[index], ...value };
-        // console.log(data);
-        setData([...data]);
+        data.push(result.data);
       }
-      // message.success(result.msg);
+      setData([...data]);
+      // console.log(data);
+      message.success(result.msg);
+    } else {
+      message.error(result.msg);
     }
     setIsModalOpen(false);
     form.resetFields();
@@ -111,26 +118,26 @@ export default function Vacuna() {
         showModal();
       }}
     >
-      <PlusOutlined /> Añadir Vacuna
+      <PlusOutlined /> Registrar Enfermedad
     </Button>
   );
   return (
     <Card extra={extra}>
       <Table
         bordered={true}
-        rowKey="id_vac"
+        rowKey="id_enf"
         loading={loading}
         dataSource={data}
         columns={columns}
         pagination={{ defaultPageSize: PAGES_SIZE }}
       />
       <Modal
-        title={isUpdate ? "Modificar Vacuna" : "Añadir Vacuna"}
+        title={isUpdate ? "Modificar enfermedad" : "Registrar enfermedad"}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
       >
-        <Form form={form} onFinish={onFinish}>
+        <Form form={form} onFinish={onFinish} {...formItemLayout}>
           <Form.Item
             label="Nombre"
             name="nombre"
@@ -143,15 +150,20 @@ export default function Vacuna() {
             <Input />
           </Form.Item>
           <Form.Item
-            label="Descripcion"
-            name="descripcion"
+            label="Sintomas"
+            name="sintoma"
             rules={[
               {
                 required: true,
               },
             ]}
           >
-            <Input.TextArea />
+            <Input.TextArea
+              autoSize={{
+                minRows: 3,
+                maxRows: 6,
+              }}
+            />
           </Form.Item>
         </Form>
       </Modal>

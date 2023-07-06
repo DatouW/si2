@@ -10,4 +10,6 @@ router.get("/log", userController.getLogList);
 
 router.put("/role", userController.putRole);
 
+router.get("/search", userController.SearchLogs);
+
 module.exports = router;

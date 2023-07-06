@@ -74,6 +74,7 @@ export default function Ave() {
 
   const onFinish = async (value) => {
     let result;
+    // console.log(NOMBRE_USUARIO);
     if (isUpdate) {
       result = (await reqUpdateSpecies(id, value.especie, NOMBRE_USUARIO)).data;
       // console.log(value);

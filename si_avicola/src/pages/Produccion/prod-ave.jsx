@@ -13,13 +13,19 @@ import {
   Select,
   InputNumber,
 } from "antd";
-import { PlusOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import moment from "moment";
+import {
+  PlusOutlined,
+  ExclamationCircleOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  MoreOutlined,
+} from "@ant-design/icons";
 import {
   reqAddBatch,
   reqBatchList,
   reqDeleteBatch,
   reqEditBatch,
+  reqEndBatch,
   reqSearchBatch,
   reqShedList,
   reqSpeciesList,
@@ -28,6 +34,7 @@ import {
 import { DATEFORMAT, PAGES_SIZE } from "../../utils/constant";
 import storageUtils from "../../utils/storageUtils";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 const { Search } = Input;
 const { Option } = Select;
 const NOMBRE_USUARIO = storageUtils.getUser().nombre_usuario;
@@ -36,12 +43,15 @@ export default function ProdAve() {
   const [loading, setLoading] = useState(false);
 
   const [isUpdate, setIsUpdate] = useState(false);
+  const [isEnd, setIsEnd] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [id, setId] = useState();
   const [galpones, setGalpones] = useState([]);
   const [aves, setAves] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [form] = Form.useForm();
+  const navigate = useNavigate();
 
   const getData = async (response) => {
     if (response) {
@@ -71,7 +81,8 @@ export default function ProdAve() {
 
   const onSelect = async (value, id_lote) => {
     // console.log(value, id_lote);
-    const result = (await reqUpdateShedBatch(id_lote, value)).data;
+    const result = (await reqUpdateShedBatch(id_lote, value, NOMBRE_USUARIO))
+      .data;
     if (result.status === 0) {
       message.success(result.msg);
     } else {
@@ -89,72 +100,14 @@ export default function ProdAve() {
       dataIndex: "fecha_ingreso",
     },
     {
-      title: "Origen",
-      dataIndex: "origen",
-      render: (o) => {
-        switch (o) {
-          case "c":
-            return "Comprado";
-          case "n":
-            return "Nacido en granja";
-          case "d":
-            return "Desconocido";
-          default:
-            return "-";
-        }
-      },
-    },
-    {
       title: "Especie",
       dataIndex: "ave",
       render: (ave) => ave.especie,
     },
     {
-      title: "Cantidad",
-      dataIndex: "cantidad",
+      title: "Cantidad actual",
+      render: (ave) => ave.cantidad - ave.mortalidad,
     },
-    {
-      title: "Mortalidad",
-      render: (lote) => {
-        const mor = (lote.mortalidad / lote.cantidad) * 100;
-        return `${mor}% (${lote.mortalidad})`;
-      },
-    },
-    // {
-    //   title:"Edad",
-
-    // }
-    // {
-    //   title: "Fecha salida",
-    //   dataIndex: "fecha_salida",
-    //   render: (fs) => (fs === null ? "-" : fs),
-    // },
-    // {
-    //   title: "Destino",
-    //   dataIndex: "destino",
-    //   render: (destino) => {
-    //     switch (destino) {
-    //       case "s":
-    //         return "Sacrificio y procesamiento";
-    //       case "v":
-    //         return "Venta como aves vivas";
-    //       case "pr":
-    //         return "En producción";
-    //       default:
-    //         return "-";
-    //     }
-    //   },
-    // },
-    // {
-    //   title: "Archivado",
-    //   dataIndex: "archivado",
-    //   render: (arc) => (arc === true ? "Si" : "No"),
-    // },
-    // {
-    //   title: "Descripcion",
-    //   dataIndex: "descripcion",
-    //   render: (des) => (des === null ? " - " : des),
-    // },
     {
       title: "Galpon",
       render: (lote) => (
@@ -174,28 +127,60 @@ export default function ProdAve() {
       title: "Acción",
       render: (lote) => {
         return (
-          <span>
+          <>
+            {lote.archivado === false ? (
+              <>
+                <Button
+                  type="primary"
+                  style={{ marginRight: 10 }}
+                  onClick={() => {
+                    setIsEnd(false);
+                    setIsUpdate((_) => true);
+                    setId(lote.id_lote);
+                    showModal(lote, true);
+                  }}
+                >
+                  <EditOutlined />
+                </Button>
+                <Button
+                  type="primary"
+                  style={{ marginRight: 10 }}
+                  danger
+                  onClick={() => deleteBatch(lote.id_lote)}
+                >
+                  <DeleteOutlined />
+                </Button>
+              </>
+            ) : null}
             <Button
               type="primary"
               style={{ marginRight: 10 }}
               onClick={() => {
-                setIsUpdate((_) => true);
-                setId(lote.id_lote);
-                showModal(lote, true);
+                navigate("/produccion/ave-detalles", { state: { lote } });
               }}
             >
-              Modificar
+              <MoreOutlined />
             </Button>
-            <Button type="primary" onClick={() => deleteProduct(lote.id_lote)}>
-              Eliminar
-            </Button>
-          </span>
+
+            {lote.fecha_salida === null ? (
+              <Button
+                type="primary"
+                style={{ marginRight: 10 }}
+                onClick={() => {
+                  setIsUpdate(false);
+                  setId(lote.id_lote);
+                  setIsEnd(true);
+                  showModal(lote);
+                }}
+              >
+                Finalizar
+              </Button>
+            ) : null}
+          </>
         );
       },
     },
   ];
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const showModal = (lote, isUpdate) => {
     if (isUpdate) {
@@ -206,6 +191,11 @@ export default function ProdAve() {
         cantidad: lote.cantidad,
         descripcion: lote.descripcion,
         id_ave: lote.id_ave,
+      });
+    }
+    if (isEnd) {
+      form.setFieldsValue({
+        nombre: lote.nombre,
       });
     }
     setIsModalOpen(true);
@@ -219,33 +209,42 @@ export default function ProdAve() {
   };
 
   const onFinish = async (value) => {
-    //
-    // console.log(value);
     let result;
     value.nombre_usuario = NOMBRE_USUARIO;
+    // console.log(value);
     if (isUpdate) {
       value.id_lote = id;
       result = (await reqEditBatch(value)).data;
+    } else if (isEnd) {
+      value.id_lote = id;
+      result = (await reqEndBatch(value)).data;
     } else {
       result = (await reqAddBatch(value)).data;
     }
     if (result.status === 0) {
-      value.fecha_ingreso = moment(value.fecha).format("YYYY-MM-DD");
-      if (result.data) {
-        dataSource.push(result.data);
-        setDataSource([...dataSource]);
-      } else {
+      // value.fecha_ingreso = moment(value.fecha).format("YYYY-MM-DD");
+      if (isEnd) {
+        let index = dataSource.findIndex((lote) => lote.id_lote === id);
+        dataSource[index] = {
+          ...dataSource[index],
+          fecha_salida: value.fecha_salida,
+          destino: value.destino,
+          archivado: true,
+        };
+      } else if (isUpdate) {
         let index = dataSource.findIndex((lote) => lote.id_lote === id);
         dataSource[index] = { ...dataSource[index], ...value };
-        setDataSource([...dataSource]);
+      } else {
+        dataSource.push(result.data);
       }
+      setDataSource([...dataSource]);
       message.success(result.msg);
     }
     setIsModalOpen(false);
     form.resetFields();
   };
 
-  const deleteProduct = (id_lote) => {
+  const deleteBatch = (id_lote) => {
     Modal.confirm({
       icon: <ExclamationCircleOutlined />,
       content: "¿Estás seguro de eliminar este lote?",
@@ -291,6 +290,7 @@ export default function ProdAve() {
       type="primary"
       onClick={() => {
         setIsUpdate(false);
+        setIsEnd(false);
         setIsModalOpen(true);
       }}
     >
@@ -309,89 +309,132 @@ export default function ProdAve() {
         columns={columns}
         pagination={{ defaultPageSize: PAGES_SIZE }}
       />
-      ;
       <Modal
         title={isUpdate ? "Modificar Lote" : "Añadir Lote"}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
       >
-        <Form form={form} onFinish={onFinish}>
-          <Form.Item
-            label="Nombre Lote"
-            name="nombre"
-            rules={[
-              {
-                required: true,
-              },
-            ]}
-          >
-            <Input />
-          </Form.Item>
+        {isEnd ? (
+          <Form form={form} onFinish={onFinish}>
+            <Form.Item
+              label="Lote"
+              name="nombre"
+              rules={[
+                {
+                  required: true,
+                },
+              ]}
+            >
+              <Input disabled />
+            </Form.Item>
 
-          <Form.Item
-            label="Fecha Ingreso"
-            name="fecha_ingreso"
-            rules={[
-              {
-                required: true,
-              },
-            ]}
-          >
-            <DatePicker />
-          </Form.Item>
+            <Form.Item
+              label="Fecha Salida"
+              name="fecha_salida"
+              rules={[
+                {
+                  required: true,
+                },
+              ]}
+            >
+              <DatePicker />
+            </Form.Item>
 
-          <Form.Item
-            label="Origen"
-            name="origen"
-            rules={[
-              {
-                required: true,
-              },
-            ]}
-          >
-            <Select placeholder="Seleccione" allowClear>
-              <Option value="c">Comprado</Option>
-              <Option value="n">Nacido en granja</Option>
-              <Option value="d">Desconocido</Option>
-            </Select>
-          </Form.Item>
+            <Form.Item
+              label="Destino"
+              name="destino"
+              rules={[
+                {
+                  required: true,
+                },
+              ]}
+            >
+              <Select placeholder="Seleccione" allowClear>
+                <Option value="s">Sacrificio y procesamiento</Option>
+                <Option value="v">Venta como aves vivas</Option>
+                <Option value="o">Otro</Option>
+              </Select>
+            </Form.Item>
+          </Form>
+        ) : (
+          <Form form={form} onFinish={onFinish}>
+            <Form.Item
+              label="Nombre Lote"
+              name="nombre"
+              rules={[
+                {
+                  required: true,
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
 
-          <Form.Item
-            label="Cantidad"
-            name="cantidad"
-            rules={[
-              {
-                required: true,
-              },
-            ]}
-          >
-            <InputNumber min={1} />
-          </Form.Item>
+            <Form.Item
+              label="Fecha Ingreso"
+              name="fecha_ingreso"
+              rules={[
+                {
+                  required: true,
+                },
+              ]}
+            >
+              <DatePicker />
+            </Form.Item>
 
-          <Form.Item label="Descripcion" name="descripcion">
-            <Input.TextArea />
-          </Form.Item>
+            <Form.Item
+              label="Origen"
+              name="origen"
+              rules={[
+                {
+                  required: true,
+                },
+              ]}
+            >
+              <Select placeholder="Seleccione" allowClear>
+                <Option value="c">Comprado</Option>
+                <Option value="n">Nacido en granja</Option>
+                <Option value="d">Desconocido</Option>
+              </Select>
+            </Form.Item>
 
-          <Form.Item
-            label="Especie"
-            name="id_ave"
-            rules={[
-              {
-                required: true,
-                message: "Este campo no puede ser vacío!",
-              },
-            ]}
-          >
-            <Select placeholder="Seleccione" allowClear>
-              {aves.map((ave) => (
-                <Option value={ave.id} key={ave.id}>
-                  {ave.especie}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Form>
+            <Form.Item
+              label="Cantidad"
+              name="cantidad"
+              rules={[
+                {
+                  required: true,
+                },
+              ]}
+            >
+              <InputNumber min={1} />
+            </Form.Item>
+
+            <Form.Item label="Descripcion" name="descripcion">
+              <Input.TextArea />
+            </Form.Item>
+
+            <Form.Item
+              label="Especie"
+              name="id_ave"
+              rules={[
+                {
+                  required: true,
+                  message: "Este campo no puede ser vacío!",
+                },
+              ]}
+            >
+              <Select placeholder="Seleccione" allowClear>
+                {aves.map((ave) => (
+                  <Option value={ave.id} key={ave.id}>
+                    {ave.especie}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Form>
+        )}
       </Modal>
     </Card>
   );

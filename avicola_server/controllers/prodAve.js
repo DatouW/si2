@@ -4,18 +4,6 @@ const { Op } = require("sequelize");
 const { registerLog } = require("./bitacora");
 const { Galpon, Lote } = require("../models");
 
-async function createBatch(data) {
-  const { nombre, fecha_ingreso, origen, descripcion, cantidad, id_ave } = data;
-
-  return await Lote.create({
-    nombre,
-    fecha_ingreso,
-    origen,
-    descripcion,
-    cantidad,
-    id_ave,
-  });
-}
 exports.getBatchList = async (req, res) => {
   try {
     const batches = await Lote.findAll({
@@ -50,11 +38,11 @@ exports.getBatchId = async (req, res) => {
 exports.addBatch = async (req, res) => {
   const {
     nombre,
-    // fecha_ingreso,
-    // origen,
-    // descripcion,
-    // cantidad,
-    // id_ave,
+    fecha_ingreso,
+    origen,
+    descripcion,
+    cantidad,
+    id_ave,
     nombre_usuario,
   } = req.body;
 
@@ -66,16 +54,24 @@ exports.addBatch = async (req, res) => {
     });
 
     if (!batch) {
-      let bat = await createBatch(req.body);
-
-      // console.log("bat--", newb);
-      await registerLog(nombre_usuario, "Ingresar nuevo lote");
+      // let bat = await createBatch(req.body);
+      const bat = await Lote.create({
+        nombre,
+        fecha_ingreso,
+        origen,
+        descripcion,
+        cantidad,
+        id_ave,
+      });
+      console.log(bat);
       res.send({ status: 0, msg: "lote anadido exitosamente", data: bat });
+      await registerLog(nombre_usuario, "Ingresar nuevo lote");
     } else {
       res.send({ status: 1, msg: "ya existe lote con el mismo nombre" });
     }
   } catch (error) {
     res.send({ status: 1, msg: error });
+    console.log(error);
   }
 };
 
@@ -127,6 +123,30 @@ exports.editBatch = async (req, res) => {
   }
 };
 
+exports.endBatch = async (req, res) => {
+  const { id_lote, fecha_salida, destino, nombre_usuario } = req.body;
+  try {
+    const bat = Lote.findByPk(id_lote, {
+      include: [
+        {
+          model: Ave,
+        },
+      ],
+    });
+    if (bat) {
+      bat.fecha_salida = fecha_salida;
+      bat.destino = destino;
+      await bat.save();
+      res.send({ status: 0, data: bat });
+      await registerLog(nombre_usuario, `Salida del ${bat.lote.nombre}`);
+    } else {
+      res.send({ status: 1, msg: "No se ha encontrado el lote " });
+    }
+  } catch (error) {
+    res.send({ status: 1, msg: "Se produjo un error..." });
+    console.log(error);
+  }
+};
 exports.deleteBatch = async (req, res) => {
   const { id_lote, nombre_usuario } = req.query;
   // console.log(id_lote);

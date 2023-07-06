@@ -26,11 +26,7 @@ const Lote = sequelize.define(
       allowNull: false,
     },
     origen: DataTypes.CHAR,
-    fecha_salida: {
-      type: DataTypes.DATEONLY,
-      allowNull: false,
-    },
-
+    fecha_salida: DataTypes.DATEONLY,
     destino: DataTypes.CHAR,
     archivado: {
       type: DataTypes.BOOLEAN,

@@ -13,6 +13,9 @@ import {
   EditOutlined,
   PlusSquareOutlined,
   CloudSyncOutlined,
+  MedicineBoxOutlined,
+  CodepenOutlined,
+  BgColorsOutlined,
 } from "@ant-design/icons";
 
 const menuList = [
@@ -63,6 +66,11 @@ const menuList = [
         key: "/produccion/huevos",
         icon: <StarOutlined />,
       },
+      {
+        title: "Incubadora",
+        key: "/produccion/incubadora",
+        icon: <CodepenOutlined />,
+      },
     ],
   },
   {
@@ -85,6 +93,11 @@ const menuList = [
         key: "/mortandad",
         icon: <CloudOutlined />,
       },
+      {
+        title: "Alimentación",
+        key: "/feeding",
+        icon: <BgColorsOutlined />,
+      },
     ],
   },
   {
@@ -101,6 +114,11 @@ const menuList = [
         title: "Vacuna",
         key: "/vacuna",
         icon: <AlertOutlined />,
+      },
+      {
+        title: "Enfermedad",
+        key: "/enfermedad",
+        icon: <MedicineBoxOutlined />,
       },
     ],
   },

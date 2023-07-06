@@ -111,10 +111,10 @@ export default function Usuario() {
   };
 
   const onFinish = async (value) => {
-    // console.log(value);
     let result;
     value.username = NOMBRE_USUARIO;
     // console.log(value);
+    // console.log(NOMBRE_USUARIO);
     if (isAdd) {
       result = (await reqRegister(value)).data;
     } else {

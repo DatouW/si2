@@ -3,6 +3,7 @@ const sequelize = require("../database");
 const Vacuna = require("../models/vacuna");
 const GalponVacuna = require("../models/galponvacuna");
 const { registerLog } = require("./bitacora");
+const Enfermedad = require("../models/enfermedad");
 
 async function getVacName(id_vac) {
   const vac = await Vacuna.findByPk(id_vac, {
@@ -10,6 +11,7 @@ async function getVacName(id_vac) {
   });
   return vac.nombre;
 }
+
 exports.getList = async (req, res) => {
   let sql =
     "SELECT g.id_galpon, v.nombre, gv.fecha, v.id_vac, gv.id " +
@@ -146,14 +148,88 @@ exports.updateVac = async (req, res) => {
       await registerLog(nombre_usuario, `Modificar datos de vacuna ${nombre}`);
       res.send({
         status: 0,
-        data: vacc,
+        data: exist,
         msg: "Vacuna modificada exitosamente",
       });
     } else {
       res.send({ status: 1, msg: "Error al modificar la vacuna" });
     }
   } catch (error) {
-    console.log("vaccine add", error);
+    console.log("vaccine update", error);
+    res.send({ status: 1, msg: error });
+  }
+};
+
+exports.getDiseaseList = async (req, res) => {
+  try {
+    const dis = await Enfermedad.findAll({
+      order: ["id_enf"],
+    });
+    res.send({ status: 0, data: dis });
+  } catch (error) {
+    console.log("disease list", error);
+    res.send({ status: 1, msg: error });
+  }
+};
+
+exports.addDis = async (req, res) => {
+  const { nombre, sintoma, nombre_usuario } = req.body;
+  let regex = `%${nombre}%`;
+  try {
+    const exist = await Enfermedad.findOne({
+      where: {
+        nombre: { [Op.iLike]: regex },
+      },
+    });
+    if (exist) {
+      res.send({ status: 1, msg: "Ya existe la enfermedad introducida" });
+    } else {
+      const enf = await Enfermedad.create({
+        nombre,
+        sintoma,
+      });
+
+      res.send({
+        status: 0,
+        data: enf,
+        msg: "Enfermedad registrada exitosamente",
+      });
+
+      await registerLog(
+        nombre_usuario,
+        `Registrar nueva enfermedad: ${nombre}`
+      );
+    }
+  } catch (error) {
+    console.log("disease add", error);
+    res.send({ status: 1, msg: error });
+  }
+};
+
+exports.UpdateDis = async (req, res) => {
+  const { id_enf, nombre, sintoma, nombre_usuario } = req.body;
+  try {
+    const exist = await Enfermedad.findByPk(id_enf);
+    if (exist) {
+      exist.nombre = nombre;
+      exist.sintoma = sintoma;
+      await exist.save();
+
+      res.send({
+        status: 0,
+        data: exist,
+        msg: "Enfermedad modificada exitosamente",
+      });
+
+      await registerLog(
+        nombre_usuario,
+        `Modificar datos de enfermedad ${nombre}`
+      );
+    } else {
+      res.send({ status: 1, msg: "Error al modificar..." });
+    }
+  } catch (error) {
+    console.log("update dis", error);
     res.send({ status: 1, msg: error });
   }
 };

@@ -127,9 +127,9 @@ export default function Galpon() {
   };
 
   const onFinish = async (value) => {
-    // console.log(value);
     let result;
     value.nombre_usuario = NOMBRE_USUARIO;
+    // console.log(value);
     if (isUpdate) {
       value.id_galpon = id;
       result = (await reqUpdateShed(value)).data;

@@ -106,10 +106,10 @@ export default function Mortandad() {
   };
 
   const onFinish = async (value) => {
-    // console.log(value);
     let result;
     value.nombre_usuario = NOMBRE_USUARIO;
     // console.log(value);
+    // console.log(NOMBRE_USUARIO);
     if (isUpdate) {
       result = (await reqUpdateMort(value)).data;
     } else {

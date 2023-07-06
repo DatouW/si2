@@ -131,8 +131,8 @@ export default function Ambiente() {
   };
 
   const onFinish = async (value) => {
-    // console.log(value);
     value.nombre_usuario = NOMBRE_USUARIO;
+    // console.log(value);
     let result = (await reqAddAmbiente(value)).data;
 
     // console.log(result);

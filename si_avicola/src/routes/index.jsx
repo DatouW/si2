@@ -18,6 +18,11 @@ import Vacuna from "../pages/salud/vacuna";
 import Bitacora from "../pages/usuario/bitacora";
 import PdfReport from "../pages/pdf";
 import Backup from "../pages/backup";
+import Enfermedad from "../pages/salud/enfermedad";
+import Incubadora from "../pages/Produccion/incubadora";
+import IncuDetalles from "../pages/Produccion/incu-details";
+import AveDetalles from "../pages/Produccion/ave-details";
+import Alimentacion from "../pages/galpon/alimentacion";
 
 const router = [
   {
@@ -53,6 +58,10 @@ const router = [
         element: <Mortandad />,
       },
       {
+        path: "feeding",
+        element: <Alimentacion />,
+      },
+      {
         path: "ave",
         element: <Ave />,
       },
@@ -65,8 +74,20 @@ const router = [
             element: <ProdAve />,
           },
           {
+            path: "ave-detalles",
+            element: <AveDetalles />,
+          },
+          {
             path: "huevos",
             element: <ProdHuevo />,
+          },
+          {
+            path: "incubadora",
+            element: <Incubadora />,
+          },
+          {
+            path: "incu-detalles",
+            element: <IncuDetalles />,
           },
         ],
       },
@@ -79,6 +100,10 @@ const router = [
       {
         path: "salud",
         element: <Salud />,
+      },
+      {
+        path: "enfermedad",
+        element: <Enfermedad />,
       },
       {
         path: "vacuna",

@@ -9,34 +9,35 @@ import {
   DatePicker,
   InputNumber,
   Select,
+  Input,
 } from "antd";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons";
 import moment from "moment";
 import {
-  reqAddEggRec,
-  reqBatchId,
-  reqEggsList,
-  reqUpdateEggRec,
+  reqAddFeeding,
+  reqFeedingList,
+  reqShedId,
+  reqUpdateFeeding,
 } from "../../api";
 import dayjs from "dayjs";
 import { DATEFORMAT, PAGES_SIZE, formItemLayout } from "../../utils/constant";
 import storageUtils from "../../utils/storageUtils";
 const NOMBRE_USUARIO = storageUtils.getUser().nombre_usuario;
 
-export default function ProdHuevo() {
+export default function Alimentacion() {
   const [loading, setLoading] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const [lotes, setLotes] = useState([]);
+  const [galpones, setGalpones] = useState([]);
   const [id, setId] = useState();
   const [form] = Form.useForm();
 
   const getData = async () => {
     setLoading(true);
-    const response = await reqEggsList();
-    const bat = (await reqBatchId()).data;
-    setLotes(bat.data);
+    const response = await reqFeedingList();
+    const bat = (await reqShedId()).data;
+    setGalpones(bat.data);
     const result = response.data;
 
     // console.log(result);
@@ -54,24 +55,23 @@ export default function ProdHuevo() {
 
   const columns = [
     {
-      title: "Fecha de Coleccion",
-      dataIndex: "fec_coleccion",
+      title: "Fecha de Alimentacion",
+      dataIndex: "fecha",
       render: (fec) => moment(fec).format(DATEFORMAT),
     },
     {
-      title: "Huevos buenos",
-      dataIndex: "bueno",
+      title: "Alimentos",
+      dataIndex: "alimento",
     },
     {
-      title: "Huevos podridos",
-      dataIndex: "podrido",
+      title: "Cantidad (kg)",
+      dataIndex: "cantidad",
     },
     {
-      title: "Proveniente de",
-      dataIndex: "lote",
-      render: (lote) => lote.nombre,
+      title: "Galpon",
+      dataIndex: "id_galpon",
+      render: (gal) => "Galpon " + gal,
     },
-
     {
       title: "Acción",
       render: (rec) => {
@@ -82,7 +82,7 @@ export default function ProdHuevo() {
             onClick={() => {
               setIsUpdate(true);
               showModal(rec, true);
-              setId(rec.id_huevo);
+              setId(rec.id_alim);
             }}
           >
             <EditOutlined />
@@ -95,10 +95,10 @@ export default function ProdHuevo() {
   const showModal = (rec, isUpdate) => {
     if (isUpdate) {
       form.setFieldsValue({
-        fec_coleccion: dayjs(rec.fec_coleccion, DATEFORMAT),
-        podrido: rec.podrido,
-        bueno: rec.bueno,
-        id_lote: rec.id_lote,
+        fecha: dayjs(rec.fecha, DATEFORMAT),
+        alimento: rec.alimento,
+        cantidad: rec.cantidad,
+        id_galpon: rec.id_galpon,
       });
     }
     setIsModalOpen(true);
@@ -116,37 +116,20 @@ export default function ProdHuevo() {
     value.nombre_usuario = NOMBRE_USUARIO;
     // console.log(value);
     if (isUpdate) {
-      value.id_huevo = id;
-      result = (await reqUpdateEggRec(value)).data;
+      value.id_alim = id;
+      result = (await reqUpdateFeeding(value)).data;
     } else {
-      result = (await reqAddEggRec(value)).data;
+      result = (await reqAddFeeding(value)).data;
     }
     if (result.status === 0) {
-      const bat = lotes.find((lote) => lote.id_lote === value.id_lote);
       // console.log(bat);
       if (isUpdate) {
-        const index = dataSource.findIndex((rec) => rec.id_huevo === id);
+        const index = dataSource.findIndex((rec) => rec.id_alim === id);
         // console.log("-----", index);
 
-        const data = {
-          ...value,
-          lote: {
-            id_lote: value.id_lote,
-            nombre: bat.nombre,
-          },
-        };
-        // console.log(data);
-        dataSource[index] = data;
+        dataSource[index] = { ...value };
       } else {
-        const data = {
-          ...result.data,
-          lote: {
-            id_lote: value.id_lote,
-            nombre: bat.nombre,
-          },
-        };
-        // console.log(data);
-        dataSource.unshift(data);
+        dataSource.unshift(result.data);
       }
       setDataSource([...dataSource]);
       // console.log(dataSource);
@@ -167,7 +150,7 @@ export default function ProdHuevo() {
       }}
     >
       <PlusOutlined />
-      Registrar Coleccion de Huevos
+      Registrar Alimentacion
     </Button>
   );
 
@@ -175,7 +158,7 @@ export default function ProdHuevo() {
     <Card extra={extra}>
       <Table
         bordered={true}
-        rowKey="id_huevo"
+        rowKey="id_alim"
         loading={loading}
         dataSource={dataSource}
         columns={columns}
@@ -190,28 +173,28 @@ export default function ProdHuevo() {
       >
         <Form form={form} onFinish={onFinish} {...formItemLayout}>
           <Form.Item
-            label="Fecha de coleccion"
-            name="fec_coleccion"
+            label="Fecha de Alimentacion"
+            name="fecha"
             rules={[{ required: true }]}
           >
             <DatePicker />
           </Form.Item>
 
           <Form.Item
-            label="Huevos buenos"
-            name="bueno"
+            label="Alimentos"
+            name="alimento"
             rules={[
               {
                 required: true,
               },
             ]}
           >
-            <InputNumber min={0} />
+            <Input />
           </Form.Item>
 
           <Form.Item
-            label="Huevos podridos"
-            name="podrido"
+            label="Cantidad (kg)"
+            name="cantidad"
             rules={[
               {
                 required: true,
@@ -221,8 +204,8 @@ export default function ProdHuevo() {
             <InputNumber min={0} />
           </Form.Item>
           <Form.Item
-            label="Proveniente de"
-            name="id_lote"
+            label="Galpon"
+            name="id_galpon"
             rules={[
               {
                 required: true,
@@ -230,9 +213,9 @@ export default function ProdHuevo() {
             ]}
           >
             <Select placeholder="Seleccione" allowClear>
-              {lotes.map((lote) => (
-                <Select.Option value={lote.id_lote} key={lote.id_lote}>
-                  {lote.nombre}
+              {galpones.map((gal) => (
+                <Select.Option value={gal.id_galpon} key={gal.id_galpon}>
+                  {gal.id_galpon}
                 </Select.Option>
               ))}
             </Select>

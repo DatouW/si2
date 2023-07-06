@@ -31,6 +31,7 @@ const Rol = () => {
   const handleOk = async () => {
     if (isAdd) form.submit();
     else {
+      // console.log(NOMBRE_USUARIO);
       const { id_rol } = selectedRow;
       // getMenu() ===  permisos seleccionados
       const menu = auth.current.getMenu();
@@ -111,7 +112,7 @@ const Rol = () => {
 
   const onFinish = async (value) => {
     value.nombre_usuario = NOMBRE_USUARIO;
-    console.log(value);
+    // console.log(value);
     const result = (await reqAddRole(value)).data;
     if (result.status === 0) {
       message.success("rol creado existosamente");

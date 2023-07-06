@@ -137,6 +137,7 @@ export default function Cuarentena() {
     // console.log(value);
     let result;
     value.nombre_usuario = NOMBRE_USUARIO;
+    // console.log(NOMBRE_USUARIO);
     if (isAdd) {
       result = (await reqAddQuar(value)).data;
       // console.log(value);

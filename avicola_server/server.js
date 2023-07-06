@@ -24,6 +24,7 @@ app.use(cors());
 
 app.use("/api", require("./routes/login"));
 app.use("/prod/aves", require("./routes/prodAve"));
+app.use("/prod/eggs", require("./routes/huevo"));
 app.use("/galpon", require("./routes/galpon.js"));
 app.use("/user", require("./routes/usuario"));
 app.use("/role", require("./routes/rol"));
@@ -55,7 +56,7 @@ let obj = null;
 // Función para programar la tarea de respaldo
 function scheduleBackup(newMinute, newHour, auto) {
   console.log(newHour, newMinute, auto);
-  // Aquí puedes implementar la lógica para obtener el horario actual del usuario
+
   let userHour;
   let userMinute;
   let flag;
@@ -104,7 +105,6 @@ app.use((err, req, res, next) => {
 
     app.listen(PORT, () => {
       console.log(`server running on port ${PORT}`);
-      console.log(process.env.tz);
     });
   } catch (error) {
     console.error("Unable to connect to the database:", error);

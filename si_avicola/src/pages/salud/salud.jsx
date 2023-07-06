@@ -120,10 +120,10 @@ export default function Salud() {
   };
 
   const onFinish = async (value) => {
-    //
-    // console.log(value);
     let result;
     value.nombre_usuario = NOMBRE_USUARIO;
+    // console.log(value);
+    // console.log(NOMBRE_USUARIO);
     if (isUpdate) {
       value.id = id;
       result = (await reqUpdateRecordHealth(value)).data;
@@ -178,6 +178,7 @@ export default function Salud() {
   const submitVac = async (value) => {
     // console.log(value);
     value.nombre_usuario = NOMBRE_USUARIO;
+    // console.log(NOMBRE_USUARIO);
     let result = (await reqAddVacc(value)).data;
 
     if (result.status === 0) {

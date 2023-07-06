@@ -1,4 +1,5 @@
 const { Lote } = require("../models");
+const Alimentacion = require("../models/alimentacion");
 const Galpon = require("../models/galpon");
 const { registerLog } = require("./bitacora");
 
@@ -32,6 +33,7 @@ exports.getShedId = async (req, res) => {
     res.send({ status: 1, msg: error });
   }
 };
+
 exports.getShedIdQuar = async (req, res) => {
   try {
     const galpones = await Galpon.findAll({
@@ -83,6 +85,67 @@ exports.updateShed = async (req, res) => {
       });
     }
     res.send({ status: 0, data: galpon, msg: "Galpon modificado con exito" });
+  } catch (error) {
+    console.log("galpon update", error);
+    res.send({ status: 1, msg: error });
+  }
+};
+
+exports.getFeedingList = async (req, res) => {
+  try {
+    const alim = await Alimentacion.findAll({
+      order: [["id_alim", "DESC"]],
+    });
+    res.send({ status: 0, data: alim });
+  } catch (error) {
+    console.log("feeding list", error);
+    res.send({ status: 1, msg: error });
+  }
+};
+
+exports.addFeedingRec = async (req, res) => {
+  const { fecha, alimento, cantidad, nombre_usuario, id_galpon } = req.body;
+  try {
+    const alim = await Alimentacion.create({
+      fecha,
+      alimento,
+      cantidad,
+      id_galpon,
+    });
+
+    res.send({ status: 0, data: alim, msg: "Registrar exitosamente" });
+    await registerLog(nombre_usuario, "Registrar nueva alimentacion");
+  } catch (error) {
+    console.log("feeding add", error);
+    res.send({ status: 1, msg: error });
+  }
+};
+
+exports.updateFeedingRec = async (req, res) => {
+  const { fecha, alimento, cantidad, nombre_usuario, id_galpon, id_alim } =
+    req.body;
+  try {
+    const alim = await Alimentacion.findByPk(id_alim);
+    if (alim) {
+      await Alimentacion.update(
+        {
+          fecha,
+          alimento,
+          cantidad,
+          id_galpon,
+        },
+        {
+          where: { id_alim },
+        }
+      );
+      res.send({ status: 0, msg: "modificado con exito" });
+      await registerLog(nombre_usuario, `Modificar registro de alimentacion`);
+    } else {
+      return res.send({
+        status: 1,
+        msg: `No se ha encontrado el galpon ${id_galpon}`,
+      });
+    }
   } catch (error) {
     console.log("galpon update", error);
     res.send({ status: 1, msg: error });

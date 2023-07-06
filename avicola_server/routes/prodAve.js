@@ -10,6 +10,8 @@ router.post("", batchesController.addBatch);
 
 router.put("", batchesController.editBatch);
 
+router.put("/end", batchesController.endBatch);
+
 router.delete("", batchesController.deleteBatch);
 
 router.get("/search", batchesController.searchBatches);

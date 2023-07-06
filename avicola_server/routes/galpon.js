@@ -12,4 +12,8 @@ router.get("/id", shedController.getShedId);
 
 router.get("/cuar", shedController.getShedIdQuar);
 
+router.get("/feeding", shedController.getFeedingList);
+router.post("/feeding", shedController.addFeedingRec);
+router.put("/feeding", shedController.updateFeedingRec);
+
 module.exports = router;
